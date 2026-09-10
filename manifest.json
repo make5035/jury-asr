@@ -1,0 +1,13 @@
+{
+  "name": "Simulateur de jury ASR",
+  "short_name": "Jury ASR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#12141a",
+  "theme_color": "#12141a",
+  "icons": [
+    {"src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
+  ]
+}
