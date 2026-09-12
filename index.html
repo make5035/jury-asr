@@ -1,0 +1,3218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12141a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jury ASR">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<title>Simulateur de jury — ASR2021</title>
+<style>
+:root{
+--bg:#12141a;--panel:#1a1d26;--panel2:#212632;--line:#2e3444;--tx:#e6e9f0;
+--dim:#98a0b3;--acc:#4c8dff;--ok:#3fb950;--warn:#d29922;--bad:#f0553a;--vio:#a371f7;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+header{background:var(--panel);border-bottom:1px solid var(--line);padding:calc(12px + env(safe-area-inset-top)) 16px 12px;position:sticky;top:0;z-index:20}
+h1{font-size:15px;margin:0 0 10px;font-weight:600}
+h1 span{color:var(--dim);font-weight:400;font-size:13px;display:block;margin-top:2px}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav button{flex:1;min-width:70px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--tx);padding:9px 13px;min-height:40px}
+button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+button.g{border-color:#2d6b3a;background:#16301d;color:#8ee79b}
+button.o{border-color:#6b5a1e;background:#2e2812;color:#e8cf85}
+button.r{border-color:#6b2d24;background:#301716;color:#f5a294}
+button.v{border-color:#4a3573;background:#231a35;color:#c6a6ff}
+main{max-width:1000px;margin:0 auto;padding:16px 14px calc(30px + env(safe-area-inset-bottom))}
+section{display:none}
+section.on{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:15px 16px;margin-bottom:14px}
+.meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:11px}
+.tag{font-size:11px;padding:3px 8px;border-radius:20px;border:1px solid var(--line);background:var(--panel2);color:var(--dim)}
+.tag.c{color:#9dc4ff;border-color:#2b4570}
+.tag.n1{color:#8ee79b;border-color:#2d6b3a}
+.tag.n2{color:#e8cf85;border-color:#6b5a1e}
+.tag.n3{color:#f5a294;border-color:#6b2d24}
+.tag.en{color:#c6a6ff;border-color:#4a3573}
+.tag.al{color:#f5a294;border-color:#6b2d24;background:#301716}
+.q{font-size:18px;line-height:1.42;margin:4px 0}
+.sub{color:var(--dim);font-size:13px}
+.exp{margin-top:14px;border-top:1px solid var(--line);padding-top:13px}
+.exp h4{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);font-weight:600}
+.exp ul{margin:0 0 13px;padding-left:18px}
+.exp li{margin-bottom:6px}
+.trap{background:#2a1f12;border-left:3px solid var(--warn);padding:9px 12px;border-radius:0 6px 6px 0;font-size:14px}
+.hid{display:none}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:12px 13px}
+.kpi b{display:block;font-size:22px;font-weight:600;line-height:1.25}
+.kpi span{color:var(--dim);font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--dim);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.bar{height:7px;border-radius:4px;background:var(--panel2);overflow:hidden;min-width:50px}
+.bar i{display:block;height:100%}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+label.chk{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:var(--dim);padding:8px 11px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);min-height:40px}
+label.chk input{accent-color:var(--acc);width:17px;height:17px}
+select,input[type=text]{font:inherit;background:var(--panel2);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:9px;min-height:40px}
+.note{color:var(--dim);font-size:13px}
+.warnbox{background:#2a1f12;border:1px solid #6b5a1e;border-radius:9px;padding:12px 14px;margin-bottom:14px;font-size:13.5px}
+.critbox{background:#301716;border:1px solid #6b2d24;border-radius:9px;padding:12px 14px;margin-bottom:14px;font-size:13.5px}
+.spark{display:flex;align-items:flex-end;gap:2px;height:58px}
+.spark i{flex:1;background:var(--acc);border-radius:2px 2px 0 0;min-height:2px}
+textarea{width:100%;min-height:80px;font:inherit;background:var(--panel2);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:9px}
+.pill{font-size:12px;color:var(--dim)}
+.tbl{overflow-x:auto}
+details summary{padding:6px 0}
+</style>
+</head>
+<body>
+<header>
+<h1>Simulateur de jury<span>ASR2021 · RNCP35587 · migration de la supervision vers Kubernetes</span></h1>
+<nav>
+<button id="nav-s" class="on" onclick="go('s')">Session</button>
+<button id="nav-d" onclick="go('d')">Suivi</button>
+<button id="nav-b" onclick="go('b')">Banque</button>
+<button id="nav-p" onclick="go('p')">Données</button>
+</nav>
+</header>
+<main>
+
+<section id="s" class="on">
+<div class="card" id="setup">
+<div class="row" style="margin-bottom:11px"><strong>Filtres</strong><span class="note" id="poolinfo"></span></div>
+<div class="row" style="margin-bottom:9px" id="fcomp"></div>
+<div class="row" style="margin-bottom:9px" id="ftype"></div>
+<div class="row" style="margin-bottom:12px" id="fniv"></div>
+<div class="row">
+<label class="chk"><input type="checkbox" id="prio" checked> Prioriser faibles et anciennes</label>
+<label class="chk">Longueur <select id="len"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>30</option></select></label>
+<button class="on" onclick="start()">Démarrer</button>
+</div>
+</div>
+<div id="run"></div>
+</section>
+
+<section id="d">
+<div class="grid" id="kpis"></div>
+<div class="card">
+<h4 style="margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim)">Score moyen par session</h4>
+<div class="spark" id="spark"></div>
+<div class="note" id="sparklab" style="margin-top:8px"></div>
+</div>
+<div class="card">
+<h4 style="margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim)">Maîtrise par compétence</h4>
+<div class="tbl"><table><thead><tr><th>Code</th><th>Statut</th><th>Vues</th><th>Maîtrise</th><th>Dernière</th></tr></thead><tbody id="tcomp"></tbody></table></div>
+</div>
+<div class="card">
+<h4 style="margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim)">15 questions les moins maîtrisées</h4>
+<div class="tbl"><table><thead><tr><th>Comp.</th><th>Question</th><th>Note</th></tr></thead><tbody id="tweak"></tbody></table></div>
+</div>
+<div class="card">
+<h4 style="margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim)">Historique des sessions</h4>
+<div class="tbl"><table><thead><tr><th>Date</th><th>Nb</th><th>Moy.</th><th>Répartition</th></tr></thead><tbody id="thist"></tbody></table></div>
+</div>
+</section>
+
+<section id="b">
+<div class="card">
+<div class="row"><input type="text" id="search" placeholder="Filtrer le texte" style="flex:1;min-width:180px" oninput="renderBank()">
+<select id="bcomp" onchange="renderBank()"></select>
+<span class="note" id="bankinfo"></span></div>
+</div>
+<div id="banklist"></div>
+</section>
+
+<section id="p">
+<div class="card">
+<h4 style="margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim)">Progression</h4>
+<p class="note" id="storinfo"></p>
+<div class="row">
+<button onclick="exportData()">Exporter (JSON)</button>
+<button onclick="document.getElementById('imp').click()">Importer</button>
+<input type="file" id="imp" class="hid" accept="application/json" onchange="importData(event)">
+<button class="r" onclick="wipe()">Réinitialiser</button>
+</div>
+<p class="note" style="margin-top:13px">Notation : 0 absente ou fausse · 1 partielle, le jury relance · 2 correcte mais incomplète · 3 correcte, argumentée, chiffrée. La maîtrise est la moyenne des trois dernières notes de chaque question, les plus récentes pondérées 4, 2 et 1.</p>
+<p class="note">Safari iOS peut purger le stockage local d'un site non consulté pendant plusieurs jours. Exportez après chaque session sérieuse.</p>
+</div>
+<div class="card">
+<h4 style="margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim)">Anonymisation</h4>
+<p class="note">Cette version est publiable. Les identifiants d'infrastructure sont remplacés par des marqueurs entre chevrons, sur le modèle de l'annexe 9. Aucun nom d'hôte, domaine interne, adresse IP, communauté SNMP, nom de personne ni raison sociale n'y figure. Les mécanismes, chiffres de charge et raisonnements sont conservés intégralement.</p>
+</div>
+<div class="card">
+<h4 style="margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim)">Contradictions relevées entre vos documents</h4>
+<div id="ecarts"></div>
+</div>
+</section>
+
+</main>
+
+<script type="application/json" id="COMPS">
+{
+"C1":{"t":"Maintenance, support et base de connaissances","s":"Facultative"},
+"C2":{"t":"Maintien en condition operationnelle des systemes et applications","s":"Retenue A1"},
+"C3":{"t":"Acces aux ressources et niveaux de privileges","s":"Facultative"},
+"C4":{"t":"Comptes utilisateur et authentification","s":"Partielle"},
+"C5":{"t":"Strategies de sauvegarde et restauration, PRA","s":"Zone faible"},
+"C6":{"t":"Scripts d automatisation des taches d administration","s":"Facultative"},
+"C9":{"t":"Services d infrastructure reseau et acces aux ressources","s":"Obligatoire A2"},
+"C12":{"t":"Implementation de services d infrastructure, perennite et disponibilite","s":"Retenue A3"},
+"C14":{"t":"Infrastructure de virtualisation a haute disponibilite","s":"A arbitrer"},
+"C16":{"t":"Supervision des equipements actifs par sondes","s":"Retenue A3"},
+"C17":{"t":"Recueil des besoins et cahier des charges","s":"Obligatoire A4"},
+"C18":{"t":"Choix des solutions techniques conformes a l etat de l art","s":"Retenue A4"},
+"C19":{"t":"Conduite de projet et maintenance operationnelle","s":"Retenue A4"},
+"C20":{"t":"Documentation technique","s":"Retenue A4"},
+"C21":{"t":"Communication en anglais","s":"Transversale"},
+"GEN":{"t":"Connaissances systeme et reseau hors perimetre","s":"Hors projet"}
+}
+</script>
+
+<script type="application/json" id="ECARTS">
+[
+{
+"n": "critique",
+"t": "Test de restauration. Le rapport ecrit en annexe 6 et au bilan que le test n a pas ete execute, et donne pour cause un defaut de priorisation, en precisant qu il ne dependait d aucun tiers et n exigeait aucune fenetre d interruption. Le script oral affirme deux fois l inverse, en slide 20 et en annexe sauvegarde : restauration testee sur un sous-ensemble, avec pour cause un manque d espace disque. Deux ecarts se cumulent, sur le fait et sur sa cause, et ils portent sur la competence la plus faible du dossier. Le jury dispose du rapport pendant l oral. A trancher avant le 17 septembre : soit le rapport est faux et doit etre corrige, soit l oral revendique un travail non realise."
+},
+{
+"n": "eleve",
+"t": "Controle d integrite du transfert. Une banque de questions decrit une comparaison d empreintes des fichiers avant et apres transfert, alors que la procedure de migration retient une comparaison de volume, de nombre de fichiers et de proprietaire, en ecartant les empreintes comme plus longues que le transfert lui-meme et non stables sur des fichiers en ecriture permanente. Choisissez une methode unique et alignez procedure, rapport et oral."
+},
+{
+"n": "moyen",
+"t": "Dimensionnement des collecteurs. Une source presente le nombre dix comme un point de depart argumente sans calcul de capacite, une autre le derive de huit collecteurs d origine, d un gain de 25 pour cent et d une occupation mesuree a 83 pour cent. La seconde version est defendable et plus solide, mais elle exige la date, le parc et l intervalle de collecte associes a ces 83 pour cent."
+},
+{
+"n": "moyen",
+"t": "Maquette de laboratoire. Le script oral decrit deux machines formant le cluster, soit un plan de controle et un seul noeud de travail. Une autre source en tire explicitement que la perte d un noeud n a pas pu etre testee. Assurez-vous de ne jamais presenter la maquette comme ayant valide la replanification ou la tolerance de panne."
+},
+{
+"n": "eleve",
+"t": "Volumetrie des series temporelles. Trois valeurs coexistent : 745 Go et 658 388 fichiers dans le rapport et dans l oral, 723 Go dans la procedure de migration, et un perimetre reduit a 672 Go apres arbitrage sur la fusion. Fixer une valeur de reference, sa date de mesure et sa methode de comptage, puis harmoniser les trois documents."
+},
+{
+"n": "eleve",
+"t": "Nombre d equipements supervises. L oral annonce environ 6 200, la procedure de migration 6 536 en mesure de production, les instructions du projet environ 6 500, et 6 908 equipements sont concernes par la fusion des historiques. Ces valeurs ne designent pas toutes la meme population ni la meme date. Preparez la distinction, le jury peut relever l ecart entre deux de vos propres phrases."
+},
+{
+"n": "moyen",
+"t": "Acces au cluster. La procedure de migration v1.7 autorise kubectl en lecture pour le diagnostic, la v2.2 l interdit totalement, et l oral affirme aucun acces direct y compris en lecture. Si la v1.7 figure encore en annexe du rapport, la contradiction est lisible par le jury."
+},
+{
+"n": "moyen",
+"t": "Cahier des charges. Le rapport presente un document structure en dix sections avec besoins fonctionnels, exigences de service, exigences non fonctionnelles, criteres de recette et points ouverts. L oral parle de cinq familles d exigences et de quinze exigences evaluees. Verifiez que le decompte annonce a l oral correspond au document remis."
+},
+{
+"n": "moyen",
+"t": "Nombre de demandes de flux traitees. L oral annonce 27 demandes d ouverture de flux sur la periode, le rapport evoque le traitement des demandes sur deux ans sans chiffre. Alignez les deux, un chiffre non repris dans le rapport sera demande a la source."
+},
+{
+"n": "faible",
+"t": "Statut de C13. Les instructions du projet signalent C13 comme un arbitrage ouvert face a C14. Le rapport porte la mention explicite de retrait de C13. Confirmez que l arbitrage est bien rendu et que la fiche de competences en premiere annexe est coherente avec ce retrait."
+},
+{
+"n": "faible",
+"t": "Points a confirmer avant la soutenance, sans reponse dans les documents lus : le mode d authentification des utilisateurs de l interface, l existence et la configuration d une protection de branche sur le depot synchronise, l emplacement exact du fichier portant les valeurs de secrets, et le nombre de noeuds du cluster de production. Chacun est une question de jury naturelle."
+}
+]
+</script>
+
+<script type="application/json" id="QUESTIONS">
+[
+{
+"id": "p001",
+"c": [
+"C12"
+],
+"t": "projet",
+"n": 2,
+"q": "Pourquoi le cache d ecriture RRD est-il limite a une seule replique alors que tout le reste de l architecture vise la tolerance de panne ?",
+"a": [
+"Plusieurs ecrivains concurrents sur les memes fichiers produisent une corruption : le format n implemente pas de verrou distribue. Contrainte du format, pas choix de dimensionnement.",
+"Trois alternatives instruites et ecartees : ecriture directe sur le partage reseau par chaque collecteur, un cache par collecteur, plusieurs repliques derriere un Service. Les trois ramenent au meme probleme, plusieurs ecrivains sur le meme jeu de fichiers.",
+"La recommandation de l editeur a ete verifiee le 12 septembre 2026 : elle confirme l instance unique.",
+"Consequence assumee : point de defaillance unique, 20 a 25 minutes d indisponibilite au remplacement.",
+"Formulation retenue : perdre vingt minutes de graphe est acceptable, corrompre l historique complet ne l est pas."
+],
+"p": "Ne pas repondre par des raisons de performance ou de cout. Le jury peut proposer lui-meme une des trois alternatives : savoir dire pourquoi chacune retombe sur le meme probleme."
+},
+{
+"id": "p002",
+"c": [
+"C12",
+"C9"
+],
+"t": "projet",
+"n": 3,
+"q": "Le Service du cache d ecriture porte clusterIP a None. Expliquez ce que cela change au chemin reseau.",
+"a": [
+"Service headless : aucune adresse virtuelle allouee, aucune regle de traduction programmee par kube-proxy.",
+"La resolution DNS du nom de service renvoie directement l adresse du pod, ici un seul enregistrement puisqu il y a une replique.",
+"Combine au StatefulSet, cela donne un nom de pod stable et previsible, indispensable pour un demon TCP a instance unique.",
+"Le trafic est du TCP direct pod a pod, sans NAT intermediaire, ce qui simplifie le diagnostic."
+],
+"p": "Le piege est de confondre headless et NodePort, ou de croire qu un Service headless supprime la resolution DNS. Il la change, il ne la retire pas."
+},
+{
+"id": "p003",
+"c": [
+"C9"
+],
+"t": "projet",
+"n": 3,
+"q": "Toutes vos valeurs designant un service interne se terminent par un point. Justifiez.",
+"a": [
+"Le fichier resolv.conf des pods contient ndots a 5 : tout nom comportant moins de cinq points est d abord essaye avec chaque suffixe de la liste search.",
+"Un nom de service sans point final declenche donc plusieurs requetes infructueuses avant la bonne.",
+"Le point final marque le nom comme absolu, le resolveur interroge directement le nom tel quel.",
+"Sur une plateforme ou dix collecteurs ouvrent des connexions en continu, cela supprime un volume important de requetes DNS parasites.",
+"Defaut silencieux : aucune erreur applicative, seulement une degradation de performance et une charge inutile sur le service DNS du cluster."
+],
+"p": "Savoir dire ce qu est ndots exactement, pas seulement qu il faut mettre un point. Le jury peut demander de compter les points dans le nom."
+},
+{
+"id": "p004",
+"c": [
+"C12",
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Le delai d arret du cache d ecriture est fixe a 600 secondes. Pourquoi, et quel est son cout d exploitation ?",
+"a": [
+"Le demon ecrit le contenu de son cache memoire vers les fichiers avant de rendre la main ; une interruption brutale perdrait les points non ecrits.",
+"La valeur est consommee integralement en pratique : 20 a 25 minutes entre le lancement de la synchronisation et la disparition effective du pod.",
+"Consequence : toute mise a jour de ce composant est une operation planifiee, pas une operation courante.",
+"Le cout est assume et figure dans le comparatif comme une contrainte du scenario retenu."
+],
+"p": "Ne pas confondre avec un delai de sonde. Si le jury demande ce qui se passe a l expiration, la reponse est un arret force du processus."
+},
+{
+"id": "p005",
+"c": [
+"C12"
+],
+"t": "projet",
+"n": 3,
+"q": "Pourquoi pas de sonde de vivacite sur le cache d ecriture ?",
+"a": [
+"Un montage NFS en mode hard peut bloquer indefiniment les ecritures tout en laissant la socket TCP ouverte et acceptant les connexions.",
+"Une sonde TCP conclurait a la sante du service alors qu il n ecrit plus ; une sonde applicative redemarrerait un pod sain bloque sur une entree-sortie.",
+"Un redemarrage dans ce contexte ne resout rien et perd le cache non ecrit, donc des donnees de mesure.",
+"Precedent dans le projet : la sonde de vivacite des collecteurs cherchait un motif de processus errone et interrompait des collecteurs en bon etat."
+],
+"p": "Le jury peut objecter qu une absence de sonde est un manque. Repondre par le cout de l erreur : ici un faux positif detruit des donnees."
+},
+{
+"id": "p006",
+"c": [
+"C1",
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Racontez le diagnostic du defaut de routage vers la base de donnees externe.",
+"a": [
+"Symptome initial non discriminant : les pods ne demarrent pas, le journal signale une impossibilite de joindre la base sans distinguer un refus d authentification d un probleme reseau.",
+"Methode : retirer une couche a chaque essai. Test applicatif complet echoue, puis connexion sans authentification echoue, ce qui ecarte les identifiants, puis test de connexion au port cible qui produit un refus de route sans ambiguite.",
+"Reproduction depuis une seconde machine pour ecarter une specificite du cluster. La correction relevait de l equipe reseau.",
+"Une journee entiere y a ete consacree, alors que la base avait ete livree la veille et annoncee comme accessible.",
+"Enseignement porte a l architecture : les composants attendent desormais la disponibilite de leurs dependances au moyen de conteneurs d initialisation qui bouclent sur un test de connexion."
+],
+"p": "Le jury attend la methode, pas l anecdote. Formulez la regle : chaque test doit retirer une couche, sinon un echec ne fait que confirmer qu il y a un probleme."
+},
+{
+"id": "p007",
+"c": [
+"C1",
+"C20"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous documentez vingt-quatre incidents. Lequel a ete le plus dangereux et pourquoi ?",
+"a": [
+"La copie vers un point de montage inactif.",
+"La destination etait un repertoire local portant le nom de l export et non le point de montage effectif : les donnees ont ete ecrites sur le disque local, a cote du partage.",
+"Dangerosite : mode de defaillance totalement silencieux. La copie se termine normalement, son compte rendu est correct, et rien ne signale l erreur au moment ou elle est commise.",
+"Detection tardive par l absence de graphes cote cluster. Parade retenue : verifier que la destination est un point de montage actif avant tout transfert.",
+"Ce risque figurait dans l analyse : c est le seul risque cote qui s est reellement produit."
+],
+"p": "Ne pas repondre par l incident le plus long a resoudre. Le jury cherche la notion de defaillance silencieuse."
+},
+{
+"id": "p008",
+"c": [
+"C2",
+"C16"
+],
+"t": "projet",
+"n": 3,
+"q": "Vous affirmez que la plateforme existante est saturee. Sur quelle mesure et avec quel resultat chiffre ?",
+"a": [
+"Releve du 21 aout 2026 : les collecteurs consomment entre 99 et 101 pour cent de leur capacite de travail.",
+"Environ 1 320 equipements ne sont pas interroges a chaque cycle et sont reportes au cycle suivant.",
+"Consequence : une partie du parc n est pas supervisee au rythme configure, sans qu aucun signalement ne le mentionne hors de la page d etat des collecteurs.",
+"Point fort du projet : ce defaut a ete revele par la mesure, pas par une alerte, et personne ne le cherchait.",
+"Cette mesure a change le jugement porte sur le scenario de maintien de l existant, initialement considere comme le moins couteux."
+],
+"p": "Savoir dire ou se lit ce chiffre et sur quelle duree. Une saturation annoncee sans mesure datee est attaquable immediatement."
+},
+{
+"id": "p009",
+"c": [
+"C16",
+"C2"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous dites que la plateforme ne se supervise pas elle-meme. Prouvez-le.",
+"a": [
+"Le 21 aout 2026, la defaillance d un collecteur n a entraine ni signalement ni reattribution de ses groupes d equipements.",
+"La plateforme a continue d afficher neuf collecteurs pour huit actifs pendant plus de deux heures.",
+"Elle dispose pourtant de l horodatage de dernier signalement de chaque collecteur : la donnee existe, aucune regle ne l exploite.",
+"Nuance a apporter : les serveurs portant la plateforme sont supervises par l autre outil du groupe. C est l auto-supervision applicative qui manque, pas la supervision systeme.",
+"C est un defaut de configuration, pas d infrastructure : il se corrige sur la plateforme cible."
+],
+"p": "Le jury peut relever que l outil est supervise par l autre plateforme. Anticipez la nuance plutot que de la subir."
+},
+{
+"id": "p010",
+"c": [
+"C16"
+],
+"t": "projet",
+"n": 2,
+"q": "Une alarme recue 148 fois n a declenche aucune notification. Expliquez le mecanisme defaillant.",
+"a": [
+"Les journaux distants et les interruptions sont recus et enregistres en base, mais aucune regle d alerte ne les prend pour source.",
+"L evenement est donc consultable a posteriori et invisible en temps reel.",
+"Defaut associe : trois equipements produisent plus de 60 pour cent du volume de journaux du groupe sans que cette anomalie soit detectee, et l un d eux emet dans un format que la plateforme ne parvient pas a classer.",
+"Correction prevue sur la plateforme cible, hors perimetre de la migration puisque la refonte des regles d alerte a ete explicitement exclue."
+],
+"p": "Le jury peut demander pourquoi ne pas l avoir corrige tout de suite si c est si simple. Repondez par le sequencement et l attribution des regressions."
+},
+{
+"id": "p011",
+"c": [
+"C18"
+],
+"t": "projet",
+"n": 3,
+"q": "Presentez le comparatif des scenarios et dites ce que le scenario ecarte resolvait reellement.",
+"a": [
+"Regle fixee avant la comparaison : une exigence imperative non satisfaite elimine le scenario, quel que soit le reste. Quinze exigences evaluees.",
+"Scenario A, maintien de la solution de composition avec corrections : figer les versions d images, versionner les fichiers de deploiement, retirer les publications de ports inutiles. Trois limites disparaissent, aucune montee en competence, aucun risque de regression.",
+"Ce qu il ne resout pas : l ajout d un collecteur reste manuel, rien ne garantit que l etat des machines corresponde au depot, la perte d un hote reste la perte de ses collecteurs.",
+"Trois exigences imperatives non satisfaites : nombre de collecteurs defini par un parametre unique, detection automatique d ecart, continuite de collecte en cas de perte d un noeud.",
+"Scenario B : les trois sont satisfaites, et le socle existe deja dans l entreprise.",
+"Cout du scenario B assume : deux fichiers contre une quinzaine de manifests, courbe d apprentissage reelle depuis zero, diagnostic sans acces direct au cluster."
+],
+"p": "Ne jamais presenter le scenario retenu comme evident. Le jury note la qualite de l argumentation contradictoire, pas la conclusion."
+},
+{
+"id": "p012",
+"c": [
+"C18",
+"C9"
+],
+"t": "projet",
+"n": 2,
+"q": "Un equilibreur de charge logiciel figure dans votre lab et pas en production. Justifiez la decision.",
+"a": [
+"Raison en laboratoire : le CNI utilise sur la maquette ne fournissait pas d attribution d adresses de service. Il fallait donc un composant pour la fournir.",
+"Raison en production : le CNI retenu fournit nativement cette attribution et l implementation de Gateway API. Le composant additionnel devient redondant.",
+"Deux composants annoncant la meme fonction ne creent pas seulement une surface de maintenance supplementaire : ils produisent un conflit d annonce sur le reseau.",
+"Transposer le laboratoire vers la production aurait donc ete une erreur, pas une simplification.",
+"Contrainte associee : les ressources a portee cluster necessaires ne relevent pas de mon perimetre."
+],
+"p": "Le laboratoire et la production n ont pas le meme CNI. Si vous justifiez le choix de laboratoire par de la redondance, vous vous contredisez : en laboratoire, il n y avait pas de redondance."
+},
+{
+"id": "p013",
+"c": [
+"C9"
+],
+"t": "projet",
+"n": 3,
+"q": "Decrivez le chemin complet d une requete HTTPS d un utilisateur jusqu au pod web.",
+"a": [
+"Resolution du nom publie par le DNS interne vers l adresse portee par la passerelle mutualisee du cluster.",
+"Cette adresse est annoncee au niveau 2 par le CNI, via son mecanisme d attribution d adresses de service.",
+"La passerelle HTTPS termine le TLS avec le certificat wildcard interne.",
+"Une HTTPRoute declaree dans le namespace applicatif reference cette passerelle en parentRefs, donc en cross-namespace, et route vers le Service du deploiement web.",
+"Une seconde passerelle assure la redirection HTTP vers HTTPS par une HTTPRoute de type redirection, reponse 301.",
+"Je n ai pas cree ces passerelles : elles preexistaient et servent d autres applications. Je m y raccorde."
+],
+"p": "Le jury peut demander ce qui autorise une HTTPRoute d un namespace a s attacher a une passerelle d un autre. Reponse : le champ allowedRoutes de la passerelle."
+},
+{
+"id": "p014",
+"c": [
+"C9"
+],
+"t": "general",
+"n": 3,
+"q": "Quelle est la difference entre Ingress et Gateway API, et qu apporte cette derniere dans votre cas ?",
+"a": [
+"Ingress est une ressource unique melant les preoccupations de l operateur d infrastructure et de l equipe applicative, avec une extension par annotations propres a chaque controleur.",
+"Gateway API separe les roles : GatewayClass et Gateway relevent du proprietaire de l infrastructure, HTTPRoute releve de l equipe applicative.",
+"Cette separation correspond exactement a ma contrainte : je n ai pas les droits a portee cluster, mais je peux declarer des HTTPRoute dans mon namespace et les attacher a une passerelle partagee.",
+"Gateway API standardise ce qui relevait des annotations : redirections, reecritures, repartition ponderee, filtres d en-tetes.",
+"Trois arguments propres a ce projet : separation infra et application conforme a mes droits reels, passerelle administree par son proprietaire dans un autre namespace avec attachement cross-namespace, et couverture des flux TCP et UDP necessaires a la reception des journaux et des interruptions.",
+"Le mandataire inverse present dans la pile d origine doublonnait une fonction deja assuree par la passerelle mutualisee du cluster : il est decommissionne a la bascule."
+],
+"p": "Ne pas dire simplement que Gateway API est plus moderne. Le jury attend la separation des roles et son lien avec vos droits reels."
+},
+{
+"id": "p015",
+"c": [
+"C12",
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous utilisez une annotation de remplacement sur certaines ressources. Dans quel cas et quel est le risque ?",
+"a": [
+"Elle est necessaire lorsqu un champ immuable doit etre modifie : une application classique echoue, seul un remplacement de la ressource est possible.",
+"Cas rencontres : appariement de volume, dimension d une revendication deja liee, champs de selecteur.",
+"Risque : le remplacement supprime puis recree la ressource, donc interruption du service porte par cette ressource. A ne pas laisser en permanence sur un objet sensible.",
+"Il s agit d un contournement d une contrainte de l API, pas d une correction : la bonne pratique est de dimensionner correctement les champs immuables des la conception."
+],
+"p": "Ne pas le presenter comme une option de confort. Le jury peut demander la liste des champs immuables d un StatefulSet."
+},
+{
+"id": "p016",
+"c": [
+"C12"
+],
+"t": "projet",
+"n": 3,
+"q": "Pourquoi un StatefulSet pour les collecteurs et non un Deployment ?",
+"a": [
+"Chaque collecteur a besoin d un identifiant stable et previsible pour que la repartition des taches soit deterministe.",
+"Un Deployment produit des noms de pods aleatoires qui changent a chaque remplacement : l identite du collecteur ne serait pas conservee.",
+"Le StatefulSet donne des noms ordinaux stables, donc un identifiant de noeud stable pour l application.",
+"La politique de gestion des pods est fixee en parallele pour que les dix repliques demarrent simultanement : il n existe aucune dependance d ordre entre collecteurs.",
+"Aucun volume par replique n est requis ici : ce n est pas le stockage qui motive le StatefulSet, c est l identite."
+],
+"p": "L erreur classique est de justifier le StatefulSet par la persistance. Ici c est l identite."
+},
+{
+"id": "p017",
+"c": [
+"C12"
+],
+"t": "projet",
+"n": 2,
+"q": "Comment les dix collecteurs se repartissent-ils le parc sans se marcher dessus ?",
+"a": [
+"Le conteneur repartiteur est active par une variable d environnement : l application repartit les groupes d equipements entre les noeuds de collecte declares.",
+"La coordination s appuie sur des verrous applicatifs dont le magasin est defini par une variable de configuration.",
+"Dans cette image ce magasin est la base de donnees par defaut : les verrous transitent par l instance commune, donc ils sont effectifs entre pods sans modification de manifest.",
+"Controle de recette associe : aucun equipement interroge par deux collecteurs."
+],
+"p": "Si vous evoquez la file de taches comme magasin de verrous, verifiez la valeur reelle. Une affirmation fausse sur ce point est facile a demonter."
+},
+{
+"id": "p018",
+"c": [
+"C5"
+],
+"t": "projet",
+"n": 3,
+"q": "Quelle est votre strategie de sauvegarde des series temporelles et pourquoi trois methodes ?",
+"a": [
+"Methode A, vidage du cache sans interruption : demande au demon d ecrire son cache puis copie. Les fichiers restent lisibles, un point de mesure peut etre incomplet.",
+"Methode B, arret du cache : garantit la coherence complete mais impose une interruption de la collecte.",
+"Methode C, instantane de baie : deporte la coherence sur le stockage, sans interruption applicative, mais depend du proprietaire de la baie et ne dispense pas du vidage prealable.",
+"Le choix depend du RPO acceptable, qui n est pas arbitre.",
+"Perimetre non reconstructible : les series temporelles et le schema de base. La configuration n y entre pas, elle est integralement decrite dans le depot versionne."
+],
+"p": "Le jury demandera laquelle est appliquee aujourd hui. Ne pas eluder."
+},
+{
+"id": "p019",
+"c": [
+"C5"
+],
+"t": "projet",
+"n": 3,
+"q": "Ou en est exactement votre test de restauration ? Repondez precisement.",
+"a": [
+"Point a trancher avant la soutenance : le rapport ecrit que le test n a pas ete execute, faute de priorisation, et l oral affirme un test sur un sous-ensemble limite par l espace disque. Une seule version doit subsister.",
+"Si le test partiel a bien eu lieu : dire ce qui a ete restaure, sur quelle instance, quelle profondeur d historique, et quel graphe a effectivement ete affiche. Sans ces elements, l affirmation ne tient pas.",
+"Si le test n a pas eu lieu : l assumer et exposer la procedure prete en six etapes avec ses points de controle. Une sauvegarde dont la restauration n a pas ete verifiee est une intention, pas une sauvegarde.",
+"Dans les deux cas, ce qui n a pas ete fait est la restauration a l echelle reelle."
+],
+"p": "C est le point le plus attaquable du dossier. Le jury a lu le rapport pendant que vous parlez. Une seule version, cohérente avec le document remis."
+},
+{
+"id": "p020",
+"c": [
+"C5"
+],
+"t": "projet",
+"n": 2,
+"q": "Pourquoi le controle de lisibilite est-il le seul controle de restauration qui compte vraiment ?",
+"a": [
+"Un fichier de mesures restaure peut exister, presenter exactement la taille attendue, et rester illisible : en-tete corrompu, ordre d octets incompatible, archive tronquee.",
+"Seul l affichage effectif d un graphe couvrant une periode anterieure a la sauvegarde etablit que la donnee est exploitable de bout en bout.",
+"Reserve connue sur le comptage : deux fichiers d ancrage de taille nulle sont presents dans l arborescence et seraient signales comme perdus par une comparaison de tailles. Ils sont corrects et doivent etre exclus explicitement.",
+"Le sous-ensemble de test retient des equipements de types differents et une profondeur d historique superieure a la periode couverte par le cache d ecriture."
+],
+"p": "Le jury peut demander pourquoi la profondeur doit depasser la periode du cache. Sinon vous ne testez que des donnees encore en memoire."
+},
+{
+"id": "p021",
+"c": [
+"C5",
+"C3"
+],
+"t": "projet",
+"n": 3,
+"q": "Quelle contrainte particuliere pese sur la restauration de la base, au-dela du dump ?",
+"a": [
+"Certains champs de la base sont chiffres avec la cle applicative.",
+"Une restauration sans la cle correspondante produit une base integre mais partiellement illisible : la restauration semble reussie et ne l est pas.",
+"La cle doit donc etre conservee avec la meme exigence que la sauvegarde elle-meme, et hors du depot versionne.",
+"Cette contrainte doit etre portee a la connaissance de l equipe qui exploite l instance, puisque sa sauvegarde ne releve pas du projet."
+],
+"p": "Le jury peut demander quels champs precisement. Si vous ne le savez pas, dites-le et donnez la methode pour le determiner plutot que d inventer."
+},
+{
+"id": "p022",
+"c": [
+"C5",
+"C17"
+],
+"t": "projet",
+"n": 2,
+"q": "Definissez RTO et RPO, et dites ou en sont les votres.",
+"a": [
+"RPO, perte maximale de donnees acceptable : determine la frequence des sauvegardes. RTO, delai maximal de retablissement : determine la methode de restauration retenue.",
+"Sur ce projet, ces deux valeurs n existaient pas. Aucun engagement de service n etait formalise sur la plateforme.",
+"Cinq exigences de service ont ete proposees au commanditaire ; elles restent au statut non valide.",
+"Consequence assumee : tant que ces valeurs ne sont pas fixees, la strategie ne peut etre dimensionnee que par hypothese. On peut mesurer qu une restauration prend deux heures, on ne peut pas dire si c est acceptable.",
+"Deux controles de recette sont prives de critere objectif pour la meme raison."
+],
+"p": "Ne proposez pas une valeur chiffree improvisee. Dire non arbitre est plus solide que d inventer un RTO."
+},
+{
+"id": "p023",
+"c": [
+"C17"
+],
+"t": "projet",
+"n": 3,
+"q": "Le projet n avait pas de cahier des charges. Comment l avez-vous construit et qu est-ce qui le rend credible ?",
+"a": [
+"Redige pendant le projet a partir du besoin exprime, de l analyse de l existant et des contraintes d exploitation. Dix sections : presentation, existant, besoins, perimetre, contraintes, exigences, criteres de recette, risques, points ouverts, validation.",
+"Premier choix structurant : distinguer les exigences arbitrees de celles qui ne le sont pas. Les exigences de service portent la mention non valide.",
+"Second choix : le document liste ses propres trous, avec onze points ouverts nommant chacun son interlocuteur.",
+"Les besoins sont traces a leur origine : commanditaire ou analyse de l existant.",
+"Faiblesse a assumer : le document a ete construit au fil des echanges, il n a pas ete signe formellement."
+],
+"p": "Le jury verifiera que vous n avez pas fabrique des besoins. Chaque ligne doit pouvoir etre rattachee a une source."
+},
+{
+"id": "p024",
+"c": [
+"C17"
+],
+"t": "projet",
+"n": 2,
+"q": "Donnez un exemple de passage d un besoin exprime a une exigence verifiable.",
+"a": [
+"Besoin : ajouter un collecteur sans intervention manuelle. Il se decompose en deux exigences distinctes.",
+"Premiere exigence : le nombre de collecteurs doit etre defini par un parametre unique de la configuration versionnee. Verifiable en portant le nombre d instances de dix a onze en modifiant une seule valeur.",
+"Seconde exigence : chaque collecteur a besoin d un identifiant stable pour que la repartition soit deterministe. C est elle qui a impose le type de ressource retenu.",
+"Autre exemple : reduire la maintenance devient une exigence de reconstruction, la plateforme doit pouvoir etre reconstruite a l identique depuis la seule source de verite. Verifiable : supprimer une ressource, resynchroniser, comparer."
+],
+"p": "Le jury cherche la verifiabilite. Moins de maintenance n est pas une exigence, c est un souhait."
+},
+{
+"id": "p025",
+"c": [
+"C17",
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Un besoin n avait pas ete exprime et vous l avez fait remonter. Lequel, et quand l avez-vous decouvert ?",
+"a": [
+"Les exigences de service : aucun taux de disponibilite, aucun delai de retablissement, aucun delai maximal de detection d une panne d equipement.",
+"La question a emerge en travaillant sur la sauvegarde, pas au moment du recueil initial. C est un defaut de la phase de recueil, assume comme tel.",
+"Cinq exigences chiffrees ont ete proposees au commanditaire, deux conditionnant directement la frequence des sauvegardes et le mode de restauration.",
+"Portage au cahier des charges avec statut explicite non valide, et inscription en point ouvert."
+],
+"p": "Reconnaitre que le manque a ete detecte tardivement est plus credible que de le presenter comme une decouverte planifiee."
+},
+{
+"id": "p026",
+"c": [
+"C19"
+],
+"t": "projet",
+"n": 3,
+"q": "Vous annoncez des conventions de commit et vous avouez 24 commits conformes sur 91. Defendez ce chiffre.",
+"a": [
+"Le chiffre est donne plutot qu une tendance parce que l historique se verifie en une commande et qu une affirmation de rigueur invérifiable ne vaut rien.",
+"Ce qui a manque n est pas la connaissance de la regle, adoptee des le deuxieme jour, mais sa constance. Les premiers commits sont des recopies brutes de sortie d outil.",
+"L historique reste exploitable : chaque modification du cluster y figure, datee et rattachee a un auteur. C est meme la seule source qui a permis de reconstituer les decisions au moment de rediger.",
+"Cout reel : plusieurs enregistrements obligent a ouvrir la modification pour comprendre ce qu elle traite.",
+"Correctif structurel : un controle automatique cote depot, qui rend la regle non contournable plutot que declarative."
+],
+"p": "Ne pas minimiser. Le jury valorise l auto-mesure, mais attendra le moyen d y remedier, pas une promesse."
+},
+{
+"id": "p027",
+"c": [
+"C19",
+"C12"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous n avez aucun acces au cluster, meme en lecture. Comment diagnostiquez-vous, et quel est le cout ?",
+"a": [
+"Trois sources : l interface web de l outil de deploiement continu avec l arbre des ressources et ses onglets, le depot Git, et des commandes executees depuis la machine portant la plateforme d origine contre les exports montes localement.",
+"L onglet exposant le manifest reellement applique remplace un describe pour l essentiel.",
+"Cout reel a ne pas taire : chaque iteration de diagnostic est plus longue, et certaines verifications elementaires exigent de passer par un tiers.",
+"Contrepartie alignee sur la certification du groupe : toute intervention est ecrite avant d etre appliquee, aucune correction non tracee n est possible.",
+"Regle stricte associee : aucune suppression manuelle de pod, meme pour diagnostic. Un pod supprime a la main est recree dans un etat non trace par le depot."
+],
+"p": "Presenter la contrainte comme une discipline et non comme une excuse, tout en chiffrant son cout. Les deux moities sont attendues."
+},
+{
+"id": "p028",
+"c": [
+"C12",
+"C19"
+],
+"t": "projet",
+"n": 3,
+"q": "Expliquez le modele Hub and Spoke de votre chaine de deploiement et ce qu il implique en cas de panne.",
+"a": [
+"L outil de deploiement continu s execute hors du cluster qu il pilote, sur une machine dediee, et se connecte au serveur d API via un fichier de connexion monte dans le conteneur.",
+"Interet : le pilotage survit a une indisponibilite du cluster cible, et un meme hub peut piloter plusieurs clusters.",
+"Risque : le hub devient un point de defaillance unique de la chaine de deploiement, et il n est pas lui-meme protege par le cluster.",
+"Perte du hub : le cluster continue de fonctionner, seul le pilotage declaratif est interrompu. Aucun impact immediat sur le service supervise.",
+"Incident associe : le fichier de connexion portait des permissions restreintes au proprietaire alors que le processus s execute sous un identifiant non privilegie dans le conteneur."
+],
+"p": "Le jury peut demander ce qui protege le hub. Reponse honnete : rien de particulier aujourd hui, c est un axe d amelioration."
+},
+{
+"id": "p029",
+"c": [
+"C12"
+],
+"t": "projet",
+"n": 2,
+"q": "La suppression des ressources retirees et la correction automatique des ecarts sont actives. Qu est-ce que cela signifie et quel risque cela introduit ?",
+"a": [
+"Correction automatique : si l etat du cluster devie de la declaration Git, l outil reapplique la declaration sans intervention. Une modification manuelle est ecrasee.",
+"Suppression : si une ressource disparait du depot, elle est retiree du cluster. Sans cela, les ressources retirees du depot subsisteraient indefiniment.",
+"Risque combine : une erreur commise et poussee est appliquee automatiquement, y compris une suppression. Le depot devient un chemin d incident direct vers la production.",
+"Parade : revue avant push, retour arriere par revert, et fonction de retour a une revision anterieure apres desactivation prealable de la synchronisation automatique.",
+"C est aussi ce qui rend verifiable l exigence de reconstruction."
+],
+"p": "Le jury peut demander comment vous evitez qu un revert declenche une suppression non voulue. Reponse : comparaison avant synchronisation, et synchronisation selective par vague."
+},
+{
+"id": "p030",
+"c": [
+"C12",
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous deployez par vagues. Decrivez la composition et la logique.",
+"a": [
+"Vague 0 : les ressources de configuration, le secret, et les cinq revendications de volume.",
+"Vague 1 : la file de taches avec son Service, le cache d ecriture avec son Service headless.",
+"Vague 2 : le deploiement web, son Service, le budget de perturbation, les deux HTTPRoute.",
+"Vague 3 : le StatefulSet des collecteurs et son Service headless. Vague 4 : les services de reception des journaux et des interruptions.",
+"Logique : la configuration et le stockage d abord, puis les dependances de donnees, puis les consommateurs. Les vagues 3 et 4 sont volontairement ecartees lors de la repetition pour qu aucune interrogation ne parte du cluster.",
+"Consequence attendue : l application reste globalement desynchronisee pendant la repetition. Ce n est pas une anomalie."
+],
+"p": "Le jury peut demander pourquoi les collecteurs viennent apres le stockage. Sans series temporelles ni base complete, ils ecriraient dans un etat incomplet."
+},
+{
+"id": "p031",
+"c": [
+"C1",
+"C12"
+],
+"t": "projet",
+"n": 3,
+"q": "Le pod web redemarre sans erreur applicative apparente. Quelle est votre lecture ?",
+"a": [
+"Enchainement documente : le cache d ecriture ralentit ou rejoue son journal, les requetes de generation de graphe restent en attente, le nombre de processus applicatifs atteint son plafond, les nouvelles requetes ne sont plus servies, la sonde de vivacite echoue et le pod est redemarre.",
+"Lecture correcte : symptome d une lenteur cote stockage, pas d un defaut du frontend.",
+"Ou l observer : compteur de redemarrages du pod web dans l arbre des ressources, correle aux journaux du pod portant le cache.",
+"Conduite a tenir : ne pas redemarrer le pod web, ne pas modifier ses sondes, attendre la fin du rejeu et controler que le compteur se stabilise.",
+"Seuil d alerte : plus de trois redemarrages sur une heure apres stabilisation du cache."
+],
+"p": "Le reflexe de modifier les sondes du pod web est exactement la mauvaise reponse. Le jury peut la suggerer pour tester."
+},
+{
+"id": "p032",
+"c": [
+"C1",
+"C3"
+],
+"t": "projet",
+"n": 2,
+"q": "Le script de permissions de l image echoue. Quelle etait la cause et pourquoi avoir ecarte l initContainer ?",
+"a": [
+"Le script natif emploie une syntaxe de changement de proprietaire propre a un environnement complet, non reconnue par l implementation minimale embarquee dans l image. Le journal signale un utilisateur inconnu.",
+"Correctif retenu : une ressource de configuration portant un script corrige, montee fichier par fichier a l emplacement attendu, avec les droits d execution.",
+"Le montage fichier par fichier est indispensable : un montage de repertoire masquerait l ensemble du contenu de l emplacement cible.",
+"La cle designant le fichier et le nom employe au montage doivent etre rigoureusement identiques, faute de quoi un repertoire vide est monte sans erreur.",
+"Alternative ecartee : un initContainer appliquant un changement de proprietaire recursif. Sur plusieurs centaines de milliers de fichiers, le surcout de demarrage est prohibitif.",
+"Autre alternative ecartee : construire une image derivee. Il aurait fallu la maintenir a chaque version amont ; la, je remplace un fichier et je repars de l image officielle."
+],
+"p": "Le jury peut demander pourquoi ne pas corriger l image. La reponse sur le cout de maintenance de l image derivee est attendue."
+},
+{
+"id": "p033",
+"c": [
+"C12",
+"C9"
+],
+"t": "projet",
+"n": 2,
+"q": "Vos volumes persistants portent une classe de stockage vide. Pourquoi cette valeur et pas l absence du champ ?",
+"a": [
+"La chaine vide desactive explicitement le provisionnement dynamique et impose une liaison statique entre volume et revendication.",
+"Omettre le champ laisse s appliquer la classe par defaut du cluster, ce qui declencherait un provisionnement dynamique et ignorerait les exports existants.",
+"La valeur doit etre identique des deux cotes, sinon aucun appariement n a lieu et la revendication reste en attente.",
+"Incident associe : appariement non nominatif entre volumes et revendications. Le controleur apparie sur des criteres de capacite et de mode d acces, pas sur le nom, sauf a designer explicitement la revendication cible."
+],
+"p": "Le jury peut demander comment garantir qu une revendication precise prenne un volume precis. Reponse : reference explicite sur le volume, ou selecteur de labels."
+},
+{
+"id": "p034",
+"c": [
+"C12"
+],
+"t": "projet",
+"n": 3,
+"q": "Le meme volume de mesures est monte sur des chemins differents selon les pods. Detaillez et dites pourquoi c est un piege.",
+"a": [
+"Le chemin diffère entre le pod portant le cache d ecriture et les pods web et collecteurs, alors que la revendication de volume est la meme.",
+"Consequence : une commande de verification executee dans un contexte et transposee dans l autre pointe sur un chemin inexistant, ce qui produit un vide interprete a tort comme une perte de donnees.",
+"Les chemins doivent etre lus dans le manifest de chaque charge, pas deduits par analogie.",
+"La contrainte est aggravee par l absence d acces au cluster : la verification se fait depuis la machine d origine contre l export monte localement, avec un troisieme chemin encore different."
+],
+"p": "Trois referentiels de chemins pour la meme donnee. Enoncez lequel vous utilisez avant de citer une commande."
+},
+{
+"id": "p035",
+"c": [
+"C16"
+],
+"t": "projet",
+"n": 2,
+"q": "Combien d equipements emettent des journaux et des interruptions vers la plateforme, et comment le savez-vous ?",
+"a": [
+"859 equipements pour les journaux distants, 19 pour les interruptions. Mesure directe du 25 aout 2026.",
+"Ce point etait initialement ouvert dans le cahier des charges ; il a ete clos par la mesure et non par une estimation.",
+"Consequence : la bascule des destinations concerne un perimetre chiffre, ce qui permet d instruire trois voies plutot qu une campagne aveugle.",
+"38 equipements du parc emettent deja vers plusieurs destinations simultanement, ce qui prouve que la directive de journalisation l accepte."
+],
+"p": "Le jury peut demander la difference entre le parc supervise et le parc emetteur. Ce ne sont pas les memes populations."
+},
+{
+"id": "p036",
+"c": [
+"C9",
+"C19"
+],
+"t": "projet",
+"n": 3,
+"q": "Comment basculez-vous les destinations de journalisation du parc, et quelle voie preferez-vous ?",
+"a": [
+"Trois voies instruites : reprise de l adresse existante par le reservoir d adresses du cluster, translation d adresse cote reseau, ou campagne de reconfiguration des equipements.",
+"Les deux premieres dependent d une reponse du proprietaire de l infrastructure sur le sous-reseau du reservoir. Ce point ouvert en conditionne un autre.",
+"Si le reservoir peut fournir une adresse dans le sous-reseau de la plateforme d origine, aucune reconfiguration du parc n est necessaire. C est la voie preferable : zero intervention sur 859 equipements.",
+"Si la campagne s impose, elle peut s etaler sans contrainte de date, la directive acceptant plusieurs destinations simultanees. Bascule progressive sans fenetre de coupure."
+],
+"p": "Ne presentez pas la campagne comme un echec. Sa propriete d etalement est un avantage de gestion du risque."
+},
+{
+"id": "p037",
+"c": [
+"C2",
+"C16"
+],
+"t": "projet",
+"n": 3,
+"q": "Une anomalie reste non resolue a la soutenance. Laquelle et comment l exposez-vous ?",
+"a": [
+"Sur la plateforme cible, les tests de joignabilite consomment cinq fois leur budget de temps alloue.",
+"Impact reel : la collecte n en est pas affectee, mais la detection d un equipement tombe peut etre retardee.",
+"La cause n est pas identifiee a ce jour. Le dire ainsi, sans hypothese presentee comme conclusion.",
+"Pistes a instruire, presentees comme hypotheses : latence de resolution DNS sortante, temporisation des tests, contention sur le pod, difference de chemin reseau entre les deux plateformes.",
+"Deux fiches de la base de connaissances decrivent des situations ouvertes. Une base qui n afficherait que des incidents resolus donnerait une image fausse."
+],
+"p": "Ne pas improviser une cause. Une hypothese assumee avec son test de validation vaut mieux qu une explication inventee."
+},
+{
+"id": "p038",
+"c": [
+"C18",
+"C12"
+],
+"t": "projet",
+"n": 2,
+"q": "Pourquoi la base de donnees est-elle hors du cluster ?",
+"a": [
+"Version imposee, sur une instance mutualisee exploitee par une equipe dediee. Decision soumise et arbitree le 6 fevrier.",
+"La base n est jamais placee sur stockage NFS : la latence et la semantique de verrouillage du partage reseau sont inadaptees a un moteur transactionnel.",
+"Deporter la base sort le composant le plus critique du perimetre de competence du projet et l aligne sur le dispositif de sauvegarde de l entreprise.",
+"Contrepartie : le projet depend d une equipe tierce pour la disponibilite et la sauvegarde, ce qui est trace en point ouvert.",
+"Dans l architecture d origine, la base etait conteneurisee sur l hote unique : sa perte etait celle de l hote."
+],
+"p": "Le jury peut demander pourquoi ne pas avoir deploye un operateur de base dans le cluster. Repondez par la responsabilite d exploitation, pas par la faisabilite technique."
+},
+{
+"id": "p039",
+"c": [
+"C3"
+],
+"t": "projet",
+"n": 2,
+"q": "Comment gerez-vous les secrets, sachant que le depot Git est la source de verite ?",
+"a": [
+"Les valeurs ne figurent pas dans le depot. Le manifest reference l existence et la structure du secret, jamais son contenu.",
+"Le compte de base de donnees est limite a son propre schema : privilege minimal necessaire.",
+"Aucun mot de passe n est passe en argument de ligne de commande dans les manifests, ce qui l exposerait dans la table des processus.",
+"Limite reconnue : l absence de chiffrement des secrets dans le depot laisse une rupture dans la chaine declarative. Point d amelioration identifie.",
+"Limite residuelle a assumer : un mot de passe subsiste en argument de ligne de commande dans une procedure. Identifie, non corrige.",
+"A confirmer avant la soutenance : l emplacement exact du fichier portant les valeurs. S il se trouve dans le depot, l exigence de securite du cahier des charges n est pas tenue et il faut le dire ainsi."
+],
+"p": "Ne pretendez pas que la chaine est complete. Le jury sait qu un secret hors depot casse la propriete de reconstruction integrale."
+},
+{
+"id": "p040",
+"c": [
+"C6"
+],
+"t": "projet",
+"n": 2,
+"q": "Quels scripts avez-vous ecrits et qu est-ce qui justifiait un script plutot qu une commande ?",
+"a": [
+"Script de collecte de l etat de redondance sur 88 commutateurs, avec fichier d inventaire separe et script de depouillement distinct.",
+"Scripts de verification post-migration, et provisionnement de bornes sans fil par playbooks.",
+"Justification du decoupage collecte puis depouillement : la collecte est couteuse et se fait une fois, le depouillement est relance autant de fois qu on change de critere de classement.",
+"Une reserve de methode est documentee avec le resultat, pas separement.",
+"Un script est aussi une trace : il rend la mesure reproductible par un tiers, ce qu une suite de commandes interactives ne permet pas."
+],
+"p": "Le jury peut demander la gestion des erreurs et des identifiants dans le script. Preparez la reponse sur les credentials."
+},
+{
+"id": "p041",
+"c": [
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Qui sont les parties prenantes du projet et quel est votre role exact ?",
+"a": [
+"Commanditaire : expression du besoin, arbitrage, validation. C est l administrateur reseau de l equipe, qui est aussi mon referent technique.",
+"Maitrise d oeuvre : conception, realisation, migration, documentation. C est mon role.",
+"Proprietaire de l infrastructure : ressources a portee cluster, reservoirs d adresses, passerelles partagees.",
+"Equipe base de donnees : instance externe et sa sauvegarde. Equipes utilisatrices : recette fonctionnelle.",
+"Tuteur : le responsable du systeme d information de territoire.",
+"Une matrice RACI construite sur vingt-quatre taches et six parties prenantes figure en annexe."
+],
+"p": "Savoir dire ce qui ne relevait pas de vous est aussi important que l inverse. Le jury teste la conscience du perimetre."
+},
+{
+"id": "p042",
+"c": [
+"C19"
+],
+"t": "projet",
+"n": 3,
+"q": "Quels sont les points faibles du projet ? Soyez precis.",
+"a": [
+"Le projet n est pas termine : la bascule reste a conduire.",
+"Un planning construit sur une hypothese de debit non testee, invalidee trois semaines plus tard par un facteur quatre.",
+"Des dependances externes identifiees mais non suivies : aucune echeance, aucune escalade, aucune solution de repli.",
+"La restauration n a pas ete eprouvee a l echelle reelle.",
+"Un mot de passe encore transmis en argument de ligne de commande dans une procedure, identifie et non corrige.",
+"Convention de commit tenue sur 24 enregistrements sur 91, et aucun compte rendu formel sur toute la duree.",
+"Les services de reception ne sont pas deployes faute de parametres d adressage."
+],
+"p": "Un rapport sans point faible est un signal negatif. Mais chaque faiblesse doit venir avec sa cause et sa suite."
+},
+{
+"id": "p043",
+"c": [
+"C19",
+"C17"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous n avez pas bascule. Comment defendez-vous un projet non termine ?",
+"a": [
+"Le perimetre livre est enonce sans ambiguite : socle applicatif deploye et fonctionnel, interface et dix collecteurs interrogeant le meme parc que la plateforme d origine, base migree et controlee, series temporelles transferees, procedures redigees.",
+"Ce qui manque est enonce avec sa cause et son responsable : arbitrage de la fusion des historiques, parametres d adressage des services de reception, date de bascule qui depend des deux.",
+"La plateforme d origine est restee la reference. Aucune interruption de service sur dix-sept mois.",
+"La valeur produite est independante de la bascule : les defauts d exploitation caracterises sur l existant sont exploitables des maintenant, et la documentation est reprenable par l equipe.",
+"Mon alternance se termine avant la bascule : c est precisement pour cela que la documentation etait un lot a part entiere et non une tache de fin."
+],
+"p": "Ne dites jamais presque fini. Enoncez ce qui est fait, ce qui reste, et qui en est responsable."
+},
+{
+"id": "p044",
+"c": [
+"C20"
+],
+"t": "projet",
+"n": 2,
+"q": "Decrivez votre base de connaissances et le format de fiche retenu.",
+"a": [
+"Vingt-quatre incidents documentes, du maquettage a la mise en service du socle applicatif.",
+"Format constant : contexte, symptomes observables, cause, resolution, commandes lorsqu elles sont transposables, notes.",
+"Les symptomes precedent la cause parce que c est dans cet ordre qu un incident se presente en exploitation. Une base classee par cause est inutilisable en situation.",
+"Trois categories : fiches de laboratoire, fiches archivees liees a des choix abandonnes, fiches de production.",
+"Les adresses, noms d hotes et identifiants sont retires ou remplaces par des marqueurs. Aucune valeur de secret n y figure."
+],
+"p": "Le jury peut demander comment on retrouve une fiche en incident. Preparez la reponse sur l index et le document de diagnostic rapide."
+},
+{
+"id": "p045",
+"c": [
+"C20"
+],
+"t": "projet",
+"n": 1,
+"q": "A qui s adressent vos procedures et comment adaptez-vous le niveau de detail ?",
+"a": [
+"Procedure de migration : destinee a un executant ayant acces a la chaine de deploiement et a la machine source, avec les chemins d interface exacts et les criteres de sortie de chaque phase.",
+"Aucune adresse ni chemin litteral dans le corps du document : un tableau de variables renseigne une fois sert de reference unique. La procedure reste reutilisable et sans valeurs perimees dispersees.",
+"Procedure de sauvegarde et restauration : destinee a un exploitant, avec points de controle et criteres de reussite explicites.",
+"Base de connaissances : destinee au diagnostic en situation, entree par symptome.",
+"Toute la documentation a ete redigee dans la perspective d une reprise par l equipe, puisque je ne conduirai pas la bascule."
+],
+"p": "Le jury peut demander si un collegue pourrait executer la migration sans vous. C est le test reel de la documentation."
+},
+{
+"id": "p046",
+"c": [
+"C16"
+],
+"t": "general",
+"n": 2,
+"q": "Expliquez la structure d un fichier RRD et pourquoi sa taille ne varie pas.",
+"a": [
+"Un fichier RRD contient un en-tete, une ou plusieurs sources de donnees, et des archives circulaires definies a la creation.",
+"Chaque archive a un nombre de lignes fixe et une fonction de consolidation : moyenne, minimum, maximum, derniere valeur.",
+"La taille est allouee a la creation et ne varie pas : quand une archive est pleine, la plus ancienne valeur est ecrasee.",
+"Consequence pour la migration : la volumetrie est previsible et ne croit qu avec l ajout d equipements ou de sources, jamais avec le temps.",
+"Interet pour la sauvegarde : le volume a sauvegarder est stable, ce qui rend le dimensionnement previsible."
+],
+"p": "Le jury peut demander la difference entre le pas et le delai de battement. Preparez-la."
+},
+{
+"id": "p047",
+"c": [
+"C16"
+],
+"t": "general",
+"n": 2,
+"q": "Que fait un cache d ecriture de series temporelles et pourquoi ne pas ecrire directement dans les fichiers ?",
+"a": [
+"Il accumule en memoire les mises a jour destinees aux fichiers et les ecrit par lots a intervalle regulier.",
+"Sans lui, chaque point de mesure de chaque source declenche une ecriture, soit une charge d entrees-sorties aleatoires proportionnelle au nombre de sources.",
+"Avec plusieurs milliers d equipements et plusieurs centaines de milliers de fichiers, cette charge est le facteur limitant de la plateforme.",
+"Le prix a payer : une fenetre de donnees en memoire non ecrites, d ou le delai d arret long et le vidage prealable a toute sauvegarde.",
+"Il expose une interface reseau, ce qui permet aux collecteurs distants d ecrire dans le meme jeu de fichiers via un point d entree unique."
+],
+"p": "Le jury peut demander ce qui se passe si le pod meurt brutalement. Reponse : perte de la fenetre en memoire."
+},
+{
+"id": "p048",
+"c": [
+"C16"
+],
+"t": "general",
+"n": 2,
+"q": "Difference entre interrogation periodique et reception d interruptions, et implications d architecture.",
+"a": [
+"Interrogation : la plateforme sollicite l equipement a intervalle fixe. Le rythme est maitrise, la charge previsible, mais un evenement entre deux cycles peut passer inapercu.",
+"Interruption : l equipement emet spontanement vers une destination. La detection est immediate mais la reception depend de l equipement, du reseau et de l absence d acquittement.",
+"Implications : l interrogation se dimensionne, les interruptions se recoivent. Un service de reception doit etre joignable a une adresse stable, d ou le besoin d une adresse de service dediee.",
+"Sur ce projet, plusieurs milliers d equipements sont interroges, 19 emettent des interruptions, 859 emettent des journaux. Trois populations distinctes."
+],
+"p": "Le jury peut demander pourquoi les interruptions ne remplacent pas l interrogation. Absence de garantie de remise et absence de mesure continue."
+},
+{
+"id": "p049",
+"c": [
+"C3",
+"C16"
+],
+"t": "general",
+"n": 3,
+"q": "Vous supervisez en SNMP v2c avec une communaute partagee. Quel est le risque et pourquoi ne pas etre passe en v3 ?",
+"a": [
+"SNMP v2c transmet la communaute en clair : toute capture reseau la revele, et elle donne acces en lecture a l ensemble des informations de l equipement.",
+"Une communaute unique sur plusieurs milliers d equipements signifie qu une seule fuite compromet la totalite du parc.",
+"SNMP v3 apporte l authentification et le chiffrement, avec un modele de securite par utilisateur.",
+"Pourquoi pas maintenant : le passage concerne plusieurs milliers d equipements de generations et de constructeurs differents, et n a rien a voir avec le mode de deploiement. Melanger les deux aurait rendu impossible d attribuer une regression a l une ou l autre cause.",
+"Statut actuel assume : risque documente et accepte, sans traitement, inscrit aux perspectives a moyen terme."
+],
+"p": "Ne pas se defendre en minimisant le risque. Le jury attend risque identifie, documente, accepte a un niveau approprie."
+},
+{
+"id": "p050",
+"c": [
+"C14",
+"C12"
+],
+"t": "projet",
+"n": 3,
+"q": "En quoi votre cluster constitue-t-il une infrastructure a haute disponibilite, et ou s arrete-t-elle ?",
+"a": [
+"Multi-noeuds avec replanification automatique : la perte d un noeud entraine la recreation des pods ailleurs, sans intervention.",
+"Le web est un deploiement, les collecteurs un StatefulSet de dix repliques : la perte d un collecteur reduit la capacite sans interrompre la collecte.",
+"Un budget de perturbation protege le web des evictions volontaires simultanees.",
+"Ou cela s arrete : le cache d ecriture est a replique unique par contrainte de format, avec 20 a 25 minutes d indisponibilite au remplacement. La base est externe et son niveau de disponibilite ne releve pas du projet. Le hub de deploiement n est pas redonde.",
+"Amelioration identifiee mais non deployee : contraintes de placement sur les collecteurs pour garantir leur repartition entre noeuds."
+],
+"p": "Annoncer la haute disponibilite sans dire ou elle s arrete est le meilleur moyen de perdre le point."
+},
+{
+"id": "p051",
+"c": [
+"C14"
+],
+"t": "general",
+"n": 2,
+"q": "Difference entre haute disponibilite, tolerance de panne et reprise d activite.",
+"a": [
+"Tolerance de panne : le service continue malgre la defaillance d un composant, sans interruption percue. Redondance active.",
+"Haute disponibilite : le service est retabli automatiquement et rapidement, avec une interruption breve mais non nulle.",
+"Reprise d activite : le service est reconstruit apres un sinistre, a partir de sauvegardes, avec une interruption mesuree par le RTO et une perte mesuree par le RPO.",
+"Sur ce projet : les collecteurs relevent de la tolerance de panne, le web et le cache d ecriture de la haute disponibilite avec des delais tres differents, et la restauration des donnees de la reprise d activite."
+],
+"p": "Le jury peut demander de classer chacun de vos composants. Preparez la reponse composant par composant."
+},
+{
+"id": "p052",
+"c": [
+"C12"
+],
+"t": "general",
+"n": 3,
+"q": "Que se passe-t-il exactement quand un noeud Kubernetes tombe ? Detaillez la sequence et les delais.",
+"a": [
+"Le kubelet cesse d envoyer son statut. Apres un delai de grace, le controleur marque le noeud comme non pret.",
+"Une marque est appliquee sur le noeud. Les pods portent une tolerance par defaut avec une duree, generalement 300 secondes.",
+"A l expiration, les pods sont marques pour eviction et les controleurs en recreent ailleurs si les ressources le permettent.",
+"Pour un StatefulSet, la recreation d un pod ordinal exige la certitude que l ancien n ecrit plus, ce qui peut necessiter une intervention si le noeud est injoignable mais pas mort.",
+"Ordre de grandeur total : plusieurs minutes, pas quelques secondes. C est pourquoi la replanification n est pas de la tolerance de panne."
+],
+"p": "Ne dites pas que Kubernetes redemarre immediatement les pods. Le jury connait les delais et testera ce point."
+},
+{
+"id": "p053",
+"c": [
+"C12"
+],
+"t": "general",
+"n": 2,
+"q": "Difference entre les sondes de vivacite, de disponibilite et de demarrage.",
+"a": [
+"Vivacite : si elle echoue, le conteneur est tue et redemarre. Elle repond a la question le processus est-il vivant.",
+"Disponibilite : si elle echoue, le pod est retire des points de terminaison du Service mais n est pas redemarre. Elle repond a la question peut-il servir du trafic.",
+"Demarrage : elle suspend les deux autres pendant la phase d initialisation. Elle evite qu une application lente a demarrer soit tuee avant d etre prete.",
+"Erreur classique : utiliser une sonde de vivacite la ou une sonde de disponibilite suffit. Un composant lent mais sain est alors tue en boucle.",
+"Cas vecu : la sonde de vivacite des collecteurs cherchait un motif de processus errone et interrompait des collecteurs sains."
+],
+"p": "Le jury peut demander pourquoi le pod web a une sonde de demarrage. Reponse : duree d initialisation superieure au seuil des autres sondes."
+},
+{
+"id": "p054",
+"c": [
+"C9"
+],
+"t": "general",
+"n": 3,
+"q": "Comment fonctionne la resolution DNS a l interieur d un pod Kubernetes ?",
+"a": [
+"Le kubelet ecrit le fichier de configuration du resolveur du pod avec l adresse du service DNS du cluster, une liste de suffixes de recherche et l option ndots.",
+"La liste de suffixes contient typiquement le namespace, puis le suffixe des services, puis le domaine du cluster.",
+"ndots a 5 : un nom comportant moins de cinq points est essaye successivement avec chaque suffixe avant d etre essaye tel quel.",
+"Le service DNS du cluster resout les noms de services depuis le serveur d API, et transfere le reste vers les resolveurs amont declares.",
+"Un Service headless renvoie les adresses des pods, un Service normal renvoie l adresse virtuelle."
+],
+"p": "Le jury peut demander pourquoi ndots vaut 5 par defaut. Pour permettre la resolution abregee des noms de service, au prix des requetes supplementaires."
+},
+{
+"id": "p055",
+"c": [
+"C9"
+],
+"t": "general",
+"n": 2,
+"q": "A quoi sert kube-proxy et que devient-il avec un CNI moderne ?",
+"a": [
+"kube-proxy programme les regles de traduction qui font correspondre l adresse virtuelle d un Service aux adresses des pods, historiquement en iptables, plus recemment en IPVS.",
+"Un CNI moderne peut le remplacer integralement par un chemin de donnees en eBPF, ce qui supprime le parcours de longues chaines et reduit la latence a grande echelle.",
+"Un Service headless ne cree aucune regle de traduction, quelle que soit l implementation : c est le cas du cache d ecriture.",
+"Le CNI apporte en outre les politiques reseau fondees sur l identite, l attribution d adresses de service et l implementation de Gateway API."
+],
+"p": "Ne pas affirmer que le remplacement de kube-proxy est actif sur ce cluster sans l avoir verifie. Vous n avez pas d acces en lecture."
+},
+{
+"id": "p056",
+"c": [
+"C9"
+],
+"t": "general",
+"n": 2,
+"q": "Comment une adresse de service externe est-elle annoncee sur un cluster bare metal ?",
+"a": [
+"Il n existe pas de fournisseur cloud pour allouer l adresse : un composant du cluster doit l attribuer puis la faire connaitre au reseau.",
+"Le mecanisme d attribution du CNI puise dans un reservoir declare comme ressource a portee cluster.",
+"L annonce se fait au niveau 2 : un noeud repond aux requetes ARP pour cette adresse, ce qui fait converger le trafic vers lui. Alternative possible : annonce BGP vers les routeurs.",
+"Consequence : l adresse doit appartenir au sous-reseau du segment des noeuds, sinon l annonce ARP n atteint personne. C est exactement l objet du point ouvert bloquant sur les services de reception.",
+"Ces ressources sont a portee cluster et ne sont jamais creees sans coordination avec le proprietaire de l infrastructure."
+],
+"p": "Le jury peut demander la difference entre annonce niveau 2 et BGP. Le niveau 2 est simple mais concentre le trafic sur un noeud."
+},
+{
+"id": "p057",
+"c": [
+"C12",
+"C9"
+],
+"t": "general",
+"n": 3,
+"q": "Qu est-ce qu une politique reseau et pourquoi les votres ne sont-elles pas deployees ?",
+"a": [
+"Une politique reseau declare le trafic autorise vers ou depuis un ensemble de pods selectionnes par labels. Par defaut tout est autorise ; des qu une politique selectionne un pod, tout ce qui n est pas explicitement autorise est refuse.",
+"Elles ont ete concues sur ce projet mais ne sont pas deployees. C est un axe d amelioration identifie, pas une realisation.",
+"Elles necessitent un CNI qui les implemente, et celui retenu va au-dela avec des politiques fondees sur l identite.",
+"Risque a deployer sans precaution : couper le trafic vers la base externe, vers le service DNS ou vers le cache d ecriture. Une politique doit toujours autoriser explicitement le DNS."
+],
+"p": "Ne revendiquez pas les politiques reseau comme une preuve. Elles sont concues, non deployees. Le jury verifiera dans le depot."
+},
+{
+"id": "p058",
+"c": [
+"C12"
+],
+"t": "general",
+"n": 2,
+"q": "Quels prerequis systeme conditionnent l initialisation d un cluster Kubernetes ?",
+"a": [
+"La memoire d echange doit etre desactivee, sinon l initialisation refuse de demarrer.",
+"Deux modules noyau doivent etre charges pour la commutation entre conteneurs.",
+"Le transfert de paquets doit etre autorise au niveau du systeme, sans quoi les pods demarrent mais ne communiquent pas.",
+"Le mode de gestion des groupes de controle du moteur de conteneurs doit etre aligne sur celui du systeme. Une divergence produit des pods qui demarrent puis s arretent sans message explicite.",
+"La version est epinglee : sans epinglage, une mise a jour du systeme peut faire monter un composant de version et casser la compatibilite entre plan de controle et noeuds.",
+"Choix delibere sur le lab : outils standard de la distribution, sans distribution allegee ni script d automatisation, pour apprendre le fonctionnement plutot que d obtenir un cluster vite."
+],
+"p": "Le jury peut demander pourquoi le swap est interdit. L ordonnanceur raisonne sur la memoire disponible et le swap fausse cette comptabilite."
+},
+{
+"id": "p059",
+"c": [
+"C12"
+],
+"t": "general",
+"n": 2,
+"q": "Quels composants tournent sur un plan de controle Kubernetes et quel est leur role ?",
+"a": [
+"Le serveur d API : point d entree unique, valide et persiste toute modification.",
+"etcd : magasin cle-valeur distribue qui contient l etat du cluster. Le seul composant reellement a sauvegarder.",
+"L ordonnanceur : choisit le noeud d execution de chaque pod non affecte.",
+"Le gestionnaire de controleurs : boucles de reconciliation, dont celles des deploiements, StatefulSets, noeuds et points de terminaison.",
+"Sur chaque noeud : le kubelet, qui execute les pods, et le moteur de conteneurs."
+],
+"p": "Le jury peut demander ce qu il faut sauvegarder d un cluster. Reponse : etcd, et le depot Git si le cluster est pilote de facon declarative."
+},
+{
+"id": "p060",
+"c": [
+"C12"
+],
+"t": "general",
+"n": 3,
+"q": "Pourquoi etcd exige-t-il un nombre impair de membres ?",
+"a": [
+"etcd utilise un algorithme de consensus : une ecriture est validee lorsqu une majorite stricte de membres l a acceptee.",
+"Un quorum de trois membres tolere une panne, un quorum de cinq en tolere deux.",
+"Passer de trois a quatre n augmente pas la tolerance : il faut toujours trois membres pour la majorite, mais il y a une machine de plus susceptible de tomber. La disponibilite baisse.",
+"Perte du quorum : le cluster passe en lecture seule, plus aucune modification n est acceptee. Les pods deja demarres continuent de tourner.",
+"La sauvegarde d etcd est un instantane consistant, a stocker hors du cluster."
+],
+"p": "Question classique de jury systeme. La reponse quatre est moins bien que trois doit etre justifiee, pas assenee."
+},
+{
+"id": "p061",
+"c": [
+"C12"
+],
+"t": "general",
+"n": 2,
+"q": "Difference entre une ressource de configuration et un secret, et quelle protection reelle apporte un secret ?",
+"a": [
+"Les deux portent de la configuration injectee dans les pods par variables d environnement ou par montage de volume.",
+"Un secret est encode en base64, ce qui n est pas un chiffrement : quiconque peut lire l objet peut lire la valeur.",
+"La protection reelle vient du controle d acces sur ce type de ressource, et du chiffrement au repos dans etcd s il est active cote serveur d API.",
+"Consequence pratique : un secret ne doit jamais etre commite en clair. Sur ce projet, seule sa structure est versionnee.",
+"Un changement monte en volume est propage aux pods, mais un changement injecte en variable d environnement exige un redemarrage."
+],
+"p": "Ne dites jamais qu un secret est chiffre. C est l erreur qui coute le plus cher sur cette question."
+},
+{
+"id": "p062",
+"c": [
+"C12",
+"C9"
+],
+"t": "general",
+"n": 2,
+"q": "Qu est-ce qu un budget de perturbation de pods et contre quoi protege-t-il ?",
+"a": [
+"Il fixe un nombre minimal de pods disponibles ou un nombre maximal indisponibles pour un ensemble selectionne.",
+"Il ne protege que contre les evictions volontaires : evacuation d un noeud pour maintenance, mise a jour, redimensionnement.",
+"Il ne protege pas contre une panne : si le noeud disparait, le pod disparait quel que soit le budget.",
+"Sur ce projet, il protege le pod web pendant les operations de maintenance menees par l equipe infrastructure.",
+"Piege : un budget trop strict sur un deploiement a une seule replique bloque indefiniment une evacuation de noeud."
+],
+"p": "Le jury peut demander si votre budget peut bloquer une maintenance. Avec un web a une replique, la question est legitime."
+},
+{
+"id": "p063",
+"c": [
+"C9"
+],
+"t": "general",
+"n": 2,
+"q": "Quelles sont les etapes de l etablissement d une connexion TCP et comment cela vous a servi en diagnostic ?",
+"a": [
+"Trois temps : demande de synchronisation du client, acquittement du serveur, acquittement du client. Etablissement avant tout echange applicatif.",
+"Interet en diagnostic : tester uniquement la couche transport isole le reseau de l authentification et de l applicatif.",
+"Cas vecu : le test de connexion au port de la base a produit un refus de route sans ambiguite, la ou le test applicatif complet ne disait rien d exploitable.",
+"Distinctions a savoir lire : connexion refusee signifie que le paquet arrive et qu aucun service n ecoute ; delai d attente depasse signifie que rien ne revient, filtrage ou absence de route ; hote injoignable est une reponse ICMP du routeur."
+],
+"p": "La distinction refus, delai depasse, injoignable est la vraie question. Elle oriente vers trois causes differentes."
+},
+{
+"id": "p064",
+"c": [
+"C9"
+],
+"t": "general",
+"n": 2,
+"q": "Qu est-ce qu un VLAN et pourquoi en utiliser dans une infrastructure hospitaliere ?",
+"a": [
+"Un VLAN segmente logiquement un commutateur en plusieurs domaines de diffusion independants, sans separation physique.",
+"Le marquage 802.1Q ajoute une etiquette dans la trame pour transporter plusieurs VLAN sur un meme lien trunk.",
+"Interets : reduction du domaine de diffusion, separation des flux par usage, application de politiques de filtrage entre segments au niveau du routage.",
+"En sante : isoler les equipements biomedicaux, la telephonie, l administration et les postes utilisateurs. La segmentation limite la propagation d un incident et permet des regles differenciees.",
+"Experience directe : migration du VLAN de telephonie sur 165 postes, terminee en decembre 2025, avec procedure testee avant bascule."
+],
+"p": "Ancrer la reponse dans votre experience reelle plutot que dans la theorie. Vous avez un cas concret a citer."
+},
+{
+"id": "p065",
+"c": [
+"C9"
+],
+"t": "general",
+"n": 2,
+"q": "Difference entre un commutateur de niveau 2 et de niveau 3, et quand utilise-t-on chacun ?",
+"a": [
+"Niveau 2 : commutation sur adresses MAC a l interieur d un domaine de diffusion, avec table d apprentissage par port.",
+"Niveau 3 : ajoute le routage IP entre VLAN, avec des interfaces virtuelles portant une passerelle par VLAN.",
+"Interet du niveau 3 en distribution : le trafic inter-VLAN ne remonte pas jusqu a un routeur central, ce qui reduit la latence et la charge du lien montant.",
+"Le filtrage inter-VLAN s applique au point de routage, donc sur le commutateur de niveau 3 ou sur le pare-feu selon la politique retenue."
+],
+"p": "Le jury peut enchainer sur le spanning tree ou l agregation de liens. Preparez au moins la notion d agregation."
+},
+{
+"id": "p066",
+"c": [
+"C9"
+],
+"t": "general",
+"n": 3,
+"q": "Qu est-ce que NFS et quelles precautions impose-t-il pour des donnees applicatives ?",
+"a": [
+"Protocole de partage de fichiers en reseau. Le client monte un export distant comme un systeme de fichiers local.",
+"Mode hard : en cas d indisponibilite du serveur, les operations bloquent indefiniment jusqu au retour. Mode soft : elles echouent apres un delai, au risque de corrompre l application qui ne gere pas l erreur.",
+"Consequence directe : un montage hard peut bloquer le cache d ecriture tout en gardant sa socket ouverte, ce qui justifie l absence de sonde de vivacite.",
+"Le verrouillage NFS est une source classique de probleme pour les bases de donnees : c est pourquoi la base n y est jamais placee.",
+"Les identifiants numeriques doivent correspondre entre client et serveur ; la propriete des fichiers de mesures est verifiee sur la totalite apres transfert."
+],
+"p": "Le jury peut demander pourquoi ne pas utiliser le mode soft partout. Parce qu il transforme une indisponibilite en corruption silencieuse."
+},
+{
+"id": "p067",
+"c": [
+"C3"
+],
+"t": "general",
+"n": 2,
+"q": "Expliquez le modele de permissions Unix et l interet du changement de proprietaire par rapport au changement de droits.",
+"a": [
+"Trois classes, proprietaire, groupe, autres, et trois droits, lecture, ecriture, execution, plus les bits speciaux.",
+"Changer les droits ouvre l acces, changer le proprietaire le cible. Rendre un fichier lisible par tous corrige un probleme d acces mais expose le contenu a tout compte de la machine.",
+"Cas vecu : le fichier de connexion au cluster etait illisible par le conteneur. La premiere solution, le rendre lisible par tous, exposait des identifiants d acces au cluster. Elle a ete remplacee par un changement de proprietaire vers l identifiant numerique du conteneur, en conservant des droits restreints.",
+"Principe : donner l acces a qui doit l avoir plutot que de l ouvrir a tous."
+],
+"p": "Le jury peut demander pourquoi l identifiant numerique compte plus que le nom dans un conteneur. Le noyau raisonne sur le numero."
+},
+{
+"id": "p068",
+"c": [
+"C3"
+],
+"t": "general",
+"n": 2,
+"q": "Qu est-ce que le controle d acces base sur les roles dans Kubernetes et comment s applique-t-il a votre situation ?",
+"a": [
+"Quatre objets : role et liaison a portee de namespace, role et liaison a portee cluster. Une liaison associe un sujet a un ensemble de verbes sur des ressources.",
+"Ma situation en est l illustration : je n ai pas de droits sur le cluster, ce qui m interdit meme la lecture. Les ressources a portee cluster relevent du proprietaire de l infrastructure.",
+"La chaine de deploiement dispose pour sa part d un compte de service avec les droits necessaires a la reconciliation dans le namespace cible.",
+"Bonne pratique : privilege minimal, portee de namespace par defaut, pas de role cluster accorde par confort.",
+"Consequence de conception : Gateway API permet de separer ce qui releve du proprietaire de l infrastructure de ce qui releve de l equipe applicative."
+],
+"p": "Le jury peut demander quels droits vous demanderiez si vous pouviez. Preparez une reponse en droits de lecture cibles, pas en administration."
+},
+{
+"id": "p069",
+"c": [
+"C2"
+],
+"t": "general",
+"n": 2,
+"q": "Comment gerez-vous les versions d images de conteneurs et pourquoi le tag latest est-il proscrit ?",
+"a": [
+"latest ne designe pas une version mais un pointeur mobile : deux deploiements du meme manifest peuvent produire deux versions differentes.",
+"Consequence : impossibilite de reproduire un etat, et impossibilite de revenir en arriere de facon fiable apres une mise a jour.",
+"C etait un defaut de l existant : aucune image n etait figee sur une version, ce qui interdisait tout retour arriere fiable.",
+"Cible : version explicite, repointee sur le registre interne.",
+"Plus strict encore : reference par empreinte, qui garantit l octet pres. Non retenu ici pour la lisibilite des manifests."
+],
+"p": "Le jury peut demander pourquoi passer par un registre interne. Disponibilite, controle de la chaine d approvisionnement, absence de dependance a un registre public."
+},
+{
+"id": "p070",
+"c": [
+"C18"
+],
+"t": "general",
+"n": 2,
+"q": "Pourquoi passer par un registre interne plutot que tirer les images depuis un registre public ?",
+"a": [
+"Disponibilite : les limites de tirage des registres publics peuvent bloquer un demarrage de pod en pleine exploitation.",
+"Controle de la chaine d approvisionnement : les images utilisees sont connues, listees et conservees meme si elles disparaissent en amont.",
+"Fonctionnement en environnement contraint : le cluster n a pas necessairement d acces sortant direct vers internet.",
+"Possibilite d analyse de vulnerabilite centralisee sur les images utilisees.",
+"Sur ce projet, toutes les images sont repointees sur le registre interne, qui preexistait au projet."
+],
+"p": "Reponse a articuler avec la politique de securite du groupe, pas seulement avec le confort technique."
+},
+{
+"id": "p071",
+"c": [
+"C2",
+"C12"
+],
+"t": "general",
+"n": 3,
+"q": "Qu est-ce que l idempotence et pourquoi est-ce central dans votre approche ?",
+"a": [
+"Une operation est idempotente si son execution repetee produit le meme etat final qu une execution unique.",
+"Le pilotage declaratif repose entierement dessus : l outil reapplique en continu la declaration, ce qui n a de sens que si l application est idempotente.",
+"La synchronisation de fichiers utilisee pour le transfert l est aussi : un transfert interrompu se relance et ne retransfere que les ecarts. C est ce qui rend le transfert relancable sans repartir de zero.",
+"A l inverse, un script imperatif qui ajoute une ligne a un fichier ne l est pas : deux executions produisent deux lignes.",
+"Consequence de conception : preferer decrire l etat cible plutot que la suite d operations pour l atteindre."
+],
+"p": "Le jury peut demander un contre-exemple dans votre projet. L import de la base n est pas idempotent sans vidage prealable."
+},
+{
+"id": "p072",
+"c": [
+"C19",
+"C18"
+],
+"t": "general",
+"n": 2,
+"q": "Qu est-ce que le pilotage declaratif par depot et en quoi cela differe-t-il d une chaine d integration continue classique ?",
+"a": [
+"Le depot decrit l etat cible, un agent compare en continu l etat reel a cette description et corrige les ecarts. Le flux est tire par le cluster, pas pousse depuis un serveur de construction.",
+"Chaine classique : un serveur de construction pousse un deploiement. Il faut alors lui donner des droits d ecriture sur la production.",
+"Avantages du modele tire : les droits restent dans le cluster, l ecart est detecte meme sans deploiement, et le retour arriere est un revert de commit.",
+"Limite : tout ce qui n est pas dans le depot echappe au modele. Les valeurs de secrets hors depot sont exactement cette rupture.",
+"Sur ce projet, aucune chaine d integration n existe : la validation automatisee avant synchronisation figure aux axes d amelioration."
+],
+"p": "Ne presentez pas les deux comme exclusifs. Ils sont complementaires, et votre chaine n a pas de validation automatisee."
+},
+{
+"id": "p073",
+"c": [
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Comment revenez-vous en arriere en cas d echec de bascule ?",
+"a": [
+"Deux niveaux distincts. Pour la configuration du cluster : revert du commit, puis synchronisation, avec suppression si une ressource doit disparaitre. La synchronisation automatique est desactivee au prealable en cas de retour d urgence a une revision anterieure.",
+"Pour le service lui-meme : la plateforme d origine reste arretee mais intacte apres bascule et constitue le filet de securite.",
+"Contrainte : la base a ete migree. Un retour arriere apres plusieurs heures de collecte cote cluster laisse un ecart de donnees entre les deux jeux.",
+"La procedure comporte une phase dediee au retour arriere, avec ses criteres de declenchement.",
+"Reversibilite inscrite comme exigence du cahier des charges, pas ajoutee apres coup."
+],
+"p": "Le jury demandera le point de non-retour. Identifiez-le precisement : c est le moment ou la source est eteinte definitivement."
+},
+{
+"id": "p074",
+"c": [
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous avez prevu une repetition avant la migration reelle. Qu est-ce que cela valide et qu est-ce que cela ne valide pas ?",
+"a": [
+"Ce que la repetition valide : montage des volumes, arborescence, permissions, joignabilite du cache depuis les pods, import de la base, empreinte des mots de passe, affichage des graphes de l echantillon, prise en charge native des equipements du parc, montage du menu personnalise.",
+"Le point le plus discriminant est l affichage des graphes de l echantillon : il valide simultanement quatre mecanismes.",
+"Ce qu elle ne valide pas : le volume reel de donnees, la charge de dix collecteurs en production, le comportement sous charge du cache d ecriture.",
+"Formulation retenue : si la repetition passe, le risque residuel porte sur le volume de donnees, pas sur le mecanisme.",
+"Precaution : les vagues 3 et 4 restent non deployees, aucune interrogation ne part du cluster, et la table de coordination des collecteurs doit rester vide."
+],
+"p": "Le jury peut demander comment vous garantissez qu aucune alerte ne part vers l equipe d exploitation pendant la repetition."
+},
+{
+"id": "p075",
+"c": [
+"C19",
+"C17"
+],
+"t": "projet",
+"n": 2,
+"q": "Vos criteres de recette : combien, comment sont-ils construits, et lesquels ne peuvent pas etre prononces ?",
+"a": [
+"Treize controles, chacun rattache a une exigence du cahier des charges et assorti d un critere de reussite verifiable. Definis avant le deploiement, pas apres.",
+"Le controle sur l ajout d un collecteur est le seul qui verifie directement le besoin ayant motive le projet : passer de dix a onze instances par modification d une seule valeur.",
+"Le controle sur la reconstruction verifie la propriete centrale du pilotage declaratif : supprimer une ressource et constater son retablissement conforme.",
+"Non prononcables en l etat : deux dependent du deploiement des services de reception, deux autres n ont aucun critere objectif tant que les exigences de service ne sont pas arbitrees.",
+"La recette fonctionnelle est portee par les utilisateurs de la supervision, pas par la maitrise d oeuvre. Aucun proces-verbal n est etabli a ce stade."
+],
+"p": "Un critere de recette sans valeur cible n est pas un critere. Le jury verifiera que vous le savez plutot que de le masquer."
+},
+{
+"id": "p076",
+"c": [
+"C2",
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Quelle est votre periode d observation apres bascule et pourquoi cette duree ?",
+"a": [
+"Quatre fenetres : les trente premieres minutes sur les journaux des collecteurs, les connexions a la base et les redemarrages ; jusqu a une heure sur la latence de la base, la charge du cache et le temps de reponse ; jusqu a deux heures sur la generation des graphes, les alertes et la reception des messages ; decision definitive a deux heures.",
+"Duree minimale non compressible de deux heures, soit deux cycles de collecte complets.",
+"Justification : c est ce qui permet de distinguer un demarrage reussi d une derive progressive. Un seul cycle ne montre pas la tendance.",
+"Un redemarrage isole du pod web dans les premieres minutes n est pas un critere de retour arriere.",
+"A noter : cette phase de surveillance longue avait ete retiree du planning arbitre par le commanditaire. Je la voulais comme filet de securite."
+],
+"p": "Le jury peut demander ce qui declencherait un retour arriere. Il faut des criteres explicites, pas un jugement au cas par cas."
+},
+{
+"id": "p077",
+"c": [
+"C16",
+"C2"
+],
+"t": "projet",
+"n": 3,
+"q": "Quel est l interet metier de superviser plusieurs milliers d equipements dans un groupe hospitalier ?",
+"a": [
+"La supervision conditionne la detection des pannes sur des equipements dont l indisponibilite affecte des activites de soins : reseau des services, telephonie, equipements biomedicaux connectes.",
+"Un defaut non detecte n est pas un incident informatique isole, il devient un incident d exploitation dans un service.",
+"Les defauts caracterises sur l existant ont une portee directe : une partie du parc n est pas interrogee au rythme configure, une defaillance de collecteur n est pas signalee, une alarme recue 148 fois ne declenche rien.",
+"La migration ne vise ni gain de performance ni gain fonctionnel : la cible doit faire exactement ce que faisait l ancienne. C est un critere de succes, pas une limite."
+],
+"p": "Le jury de professionnels attend le lien avec l activite, pas seulement la technique."
+},
+{
+"id": "p078",
+"c": [
+"C17",
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Quel est le perimetre exclu du projet et pourquoi avoir exclu chaque element ?",
+"a": [
+"Extension du parc supervise : ajouterait une variable de charge pendant une bascule.",
+"Refonte des regles d alerte : chantier applicatif independant, meme s il repond a un defaut reel constate.",
+"Passage a SNMP v3 : concerne plusieurs milliers d equipements de generations diverses, sans rapport avec le mode de deploiement.",
+"Sauvegarde de la base : releve de l equipe dediee sur une instance mutualisee.",
+"Deux non-objectifs explicites : ni gain de performance de collecte, ni gain fonctionnel.",
+"Chaque exclusion protege le projet d un elargissement qui aurait empeche de le terminer, et preserve la capacite a attribuer une regression a une cause unique."
+],
+"p": "Le jury peut demander si l exclusion des regles d alerte est defendable quand vous en montrez le defaut. Preparez la reponse sur le sequencement."
+},
+{
+"id": "p079",
+"c": [
+"C12"
+],
+"t": "projet",
+"n": 3,
+"q": "Les deux plateformes collectent en parallele depuis fin juillet. Quel probleme cela pose-t-il ?",
+"a": [
+"Deux jeux de series temporelles existent pour les memes equipements, avec des historiques partiellement disjoints depuis le debut de la collecte parallele.",
+"Trois options : conserver le jeu source, conserver le jeu cible, ou fusionner. Fusionner n est pas une simple copie : il faut reconcilier des archives circulaires avec des pas et des periodes potentiellement differents.",
+"L arbitrage appartient au commanditaire parce qu il porte sur la valeur de l historique, pas sur la faisabilite technique.",
+"Point de methode a assumer : la double collecte etait initialement traitee comme un risque a eviter par un sequencement strict. J ai leve cette mesure volontairement pour valider la cible en conditions reelles, et je n ai pas recote le risque immediatement. Il est devenu le plus critique du projet."
+],
+"p": "Le jury peut demander comment vous fusionneriez concretement deux archives. Ne presentez pas la fusion comme techniquement simple."
+},
+{
+"id": "p080",
+"c": [
+"C20",
+"C18"
+],
+"t": "projet",
+"n": 1,
+"q": "Vous avez produit des diagrammes C4. Expliquez les niveaux et ce que chacun apporte.",
+"a": [
+"C4 est un modele de documentation d architecture a quatre niveaux d abstraction, chacun destine a un public different.",
+"Niveau 1, contexte : le systeme et ses interlocuteurs externes. Destine a un lecteur non technique.",
+"Niveau 2, conteneurs : les unites deployables et leurs echanges. C est le niveau qui montre web, collecteurs, cache d ecriture, file de taches, base externe.",
+"Niveau 3, composants : l interieur d une unite deployable.",
+"Niveau 4, code : non produit ici et sans apport pour ce projet.",
+"Interet reel : chaque niveau repond a une question differente, ce qui evite le schema unique illisible."
+],
+"p": "Ne projetez pas un niveau 2 sans avoir prepare le niveau 1. La question porte souvent sur le public vise."
+},
+{
+"id": "p081",
+"c": [
+"C1"
+],
+"t": "general",
+"n": 2,
+"q": "Comment structurez-vous un diagnostic quand le symptome n oriente vers rien ?",
+"a": [
+"Reduire le perimetre teste a chaque essai en retirant une couche, jusqu a obtenir un echec discriminant.",
+"Chaque test doit valider ou invalider une hypothese unique. Un test qui echoue sur trois causes possibles ne fait que confirmer qu il y a un probleme.",
+"Reproduire le symptome depuis un second point d observation pour ecarter une specificite locale.",
+"Documenter au fur et a mesure : sur l incident de routage, une quinzaine d enregistrements successifs documentent la reduction.",
+"Distinguer contournement et correction : un contournement doit etre annonce comme tel, sinon la cause racine est perdue.",
+"Constat traversant les vingt-quatre fiches : dans aucun cas la cause n etait la ou le symptome pointait."
+],
+"p": "Illustrez par un cas precis plutot que de reciter une demarche generale."
+},
+{
+"id": "p082",
+"c": [
+"C1"
+],
+"t": "general",
+"n": 1,
+"q": "Quelle difference entre un incident, un probleme et un changement ?",
+"a": [
+"Incident : interruption ou degradation non planifiee d un service. Objectif, retablir au plus vite, y compris par contournement.",
+"Probleme : la cause sous-jacente d un ou plusieurs incidents. Objectif, supprimer la cause, sur un temps different.",
+"Changement : modification planifiee de l infrastructure, evaluee, autorisee et tracee.",
+"Sur ce projet, un contournement est toujours annonce comme tel afin que la cause reste ouverte. La base de connaissances distingue les fiches resolues des situations encore ouvertes."
+],
+"p": "Ne recitez pas un referentiel. Rattachez chaque notion a votre pratique reelle."
+},
+{
+"id": "p083",
+"c": [
+"C2"
+],
+"t": "projet",
+"n": 1,
+"q": "Quelles taches recurrentes assurez-vous en dehors de ce projet ?",
+"a": [
+"Repartition inhabituelle : trois jours par semaine sur un site, en support de proximite, gestion du parc actif et missions d infrastructure locales ; deux jours au groupement, sur les plateformes transverses, supervision reseau du groupe et pare-feux.",
+"27 demandes d ouverture de flux traitees sur la periode.",
+"Gestion de l annuaire : creation et suppression de comptes, appartenance aux groupes, strategies de groupe sur le perimetre du site.",
+"Densification du reseau sans fil, renouvellement de commutateurs, migration de VLAN, remplacement du coeur de reseau.",
+"Ces missions alimentent plusieurs competences independamment du projet de migration, et chacune modifie le parc supervise."
+],
+"p": "Le jury de A1 cherche l administrateur au quotidien. Preparez des exemples datables."
+},
+{
+"id": "p084",
+"c": [
+"C21"
+],
+"t": "anglais",
+"n": 2,
+"q": "Can you introduce yourself and describe your project in about two minutes?",
+"a": [
+"Structure attendue : qui vous etes, votre poste et votre contexte, puis le probleme, la solution retenue et l etat d avancement.",
+"Vocabulaire a maitriser : network monitoring platform, work-study contract, migration, container orchestration, deployment, storage, backup and restore.",
+"Ne pas surcharger de jargon. Une phrase claire vaut mieux qu une phrase technique mal construite.",
+"Terminer sur ce qui reste a faire plutot que sur une conclusion triomphale : c est plus credible et cela prepare la question suivante."
+],
+"p": "Le resume anglais du rapport et cette reponse orale doivent etre coherents. Le jury a lu le rapport."
+},
+{
+"id": "p085",
+"c": [
+"C21"
+],
+"t": "anglais",
+"n": 2,
+"q": "Why did you choose Kubernetes over keeping the existing setup?",
+"a": [
+"Trois arguments simples : scaling collectors by changing one value, drift detection and automatic correction, keeping collection running when a node fails.",
+"Reconnaitre le cout : higher complexity, a real learning curve, and one component that cannot be replicated.",
+"Ajouter l argument decisif : the platform was already used in the company, so we did not introduce a new technology.",
+"Vocabulaire : replica, manifest, declarative configuration, single point of failure, rollback."
+],
+"p": "Le jury juge la capacite a se faire comprendre, pas l accent. Phrases courtes, pas de traduction litterale du francais."
+},
+{
+"id": "p086",
+"c": [
+"C21"
+],
+"t": "anglais",
+"n": 3,
+"q": "What went wrong during this project, and what did you learn from it?",
+"a": [
+"Choisir un incident precis : for example, the data was copied to a local directory instead of the actual mount point, and nothing reported the error.",
+"Structure : what happened, why it was not detected, how it was fixed, what changed afterwards.",
+"Vocabulaire : mount point, silent failure, file count, to roll back, to trace, estimate.",
+"Assumer en anglais simple : I planned the migration window from an untested assumption, and the real transfer took four times longer."
+],
+"p": "Repondre par aucun probleme majeur est la pire reponse possible, en francais comme en anglais."
+},
+{
+"id": "p087",
+"c": [
+"C21"
+],
+"t": "anglais",
+"n": 2,
+"q": "How do you use English documentation in your daily work?",
+"a": [
+"Sources principales : documentation officielle de la plateforme supervisee, de l orchestrateur, du CNI, et notes de version.",
+"Preciser l usage reel : lire les notes de version avant une montee de version, comprendre un message d erreur, suivre une discussion technique sur un depot public.",
+"Reserve a exprimer : les sources communautaires sont utiles mais doivent etre confrontees a la documentation officielle. Une annexe du rapport porte cette note.",
+"Vocabulaire : release notes, upstream, issue, workaround, breaking change."
+],
+"p": "Une reponse concrete avec des exemples vaut mieux qu une affirmation generale."
+},
+{
+"id": "p088",
+"c": [
+"C12",
+"C9"
+],
+"t": "general",
+"n": 3,
+"q": "Qu est-ce qu un conteneur d initialisation et comment l avez-vous utilise ?",
+"a": [
+"Conteneur execute jusqu a completion avant le demarrage des conteneurs principaux du pod. S il echoue, le pod est redemarre selon sa politique.",
+"Usage retenu apres l incident de routage : les composants attendent la disponibilite effective de leurs dependances au moyen d un conteneur qui boucle sur un test de connexion.",
+"Interet : le pod ne demarre pas dans un etat semi-fonctionnel, et le journal indique clairement quelle dependance manque.",
+"Usage ecarte : un conteneur effectuant un changement de proprietaire recursif sur les fichiers de mesures, au surcout de demarrage prohibitif.",
+"Distinction a connaitre : un conteneur d initialisation se termine, un conteneur adjacent tourne en parallele du principal."
+],
+"p": "Le jury peut demander la difference avec une sonde de disponibilite. L un bloque le demarrage, l autre retire du service un pod deja demarre."
+},
+{
+"id": "p089",
+"c": [
+"C12"
+],
+"t": "general",
+"n": 2,
+"q": "Comment Kubernetes decide-t-il sur quel noeud placer un pod ?",
+"a": [
+"L ordonnanceur filtre d abord les noeuds eligibles : ressources demandees disponibles, marques tolerees, contraintes de selecteur et d affinite respectees, volumes attachables.",
+"Il score ensuite les noeuds restants et retient le meilleur.",
+"Leviers de conception : demandes et limites de ressources, selecteur de noeud, affinites de noeud et de pod, contraintes de repartition topologique.",
+"Sur ce projet, les contraintes de placement sur les collecteurs sont identifiees comme amelioration : sans elles, rien ne garantit que les dix repliques ne se concentrent pas sur un meme noeud.",
+"Sans demandes declarees, l ordonnanceur ne peut pas raisonner sur la charge reelle."
+],
+"p": "Le jury peut demander la difference entre demandes et limites. Les demandes servent a placer, les limites a brider."
+},
+{
+"id": "p090",
+"c": [
+"C12"
+],
+"t": "general",
+"n": 3,
+"q": "Que se passe-t-il si un conteneur depasse sa limite memoire, et si c est sa limite processeur ?",
+"a": [
+"Memoire : la limite est non compressible. Le noyau tue le processus et le conteneur redemarre.",
+"Processeur : la ressource est compressible. Le conteneur est bride par le mecanisme de quota, il ralentit mais n est pas tue.",
+"Consequence de conception : une limite memoire trop basse produit des redemarrages cycliques attribues a tort a un bug applicatif.",
+"Contexte du projet : la charge des tentatives de collecte infructueuses peut saturer la memoire des pods si le parc bascule massivement en indisponible, ce qui est prevu explicitement dans la procedure."
+],
+"p": "Distinction compressible et non compressible. C est la reponse attendue, pas seulement le fait que ca redemarre."
+},
+{
+"id": "p091",
+"c": [
+"C5"
+],
+"t": "general",
+"n": 2,
+"q": "Enoncez la regle 3-2-1 et confrontez-la a votre situation reelle.",
+"a": [
+"Trois copies des donnees, sur deux supports differents, dont une hors site.",
+"Situation reelle : les series temporelles resident sur la baie et, pendant la periode de recouvrement, encore sur la machine d origine. La base est sur une instance mutualisee dont la sauvegarde releve d une equipe dediee.",
+"Ce qui manque pour satisfaire la regle : la confirmation ecrite du dispositif applicable a la base, et l existence d une copie hors site des series temporelles.",
+"Rappel : une copie n est une sauvegarde que si sa restauration a ete eprouvee. Un instantane de baie sur le meme equipement ne protege pas de la perte de l equipement."
+],
+"p": "Ne recitez pas la regle sans la confronter a votre cas. Le jury sanctionne la recitation."
+},
+{
+"id": "p092",
+"c": [
+"C5"
+],
+"t": "general",
+"n": 2,
+"q": "Difference entre sauvegarde complete, differentielle et incrementale, et laquelle correspond a une synchronisation de fichiers ?",
+"a": [
+"Complete : la totalite a chaque execution. Restauration la plus simple, cout maximal.",
+"Differentielle : les modifications depuis la derniere complete. Restauration en deux temps.",
+"Incrementale : les modifications depuis la derniere sauvegarde quelle qu elle soit. Cout minimal, restauration exigeant toute la chaine, donc plus fragile.",
+"Une synchronisation de fichiers sans instantane produit une copie miroir, pas un historique : il n y a pas de point de restauration anterieur, et une suppression accidentelle est propagee.",
+"Consequence : l outil de synchronisation sert au transfert de migration, pas de dispositif de sauvegarde. Ce sont deux besoins differents."
+],
+"p": "Le piege est de presenter le transfert comme la strategie de sauvegarde. Le jury peut faire cette confusion volontairement."
+},
+{
+"id": "p093",
+"c": [
+"C2",
+"C9"
+],
+"t": "general",
+"n": 2,
+"q": "Qu est-ce que TLS apporte exactement, et qu est-ce qu un certificat wildcard ?",
+"a": [
+"TLS apporte trois proprietes : confidentialite par chiffrement, integrite par verification, authentification du serveur par son certificat.",
+"Un certificat lie un nom de domaine a une cle publique, et est signe par une autorite a laquelle le client fait confiance.",
+"Un certificat wildcard couvre tous les sous-domaines d un meme niveau, mais pas un niveau supplementaire.",
+"Interet ici : publier plusieurs applications du cluster sans emettre un certificat par service. Contrepartie : une compromission de la cle affecte tous les services couverts.",
+"La confiance dans l autorite interne est injectee au niveau systeme sur ce projet, sans volume de certificat dedie."
+],
+"p": "Le jury peut demander la limite du wildcard sur les niveaux de sous-domaines. C est l erreur la plus frequente."
+},
+{
+"id": "p094",
+"c": [
+"C9"
+],
+"t": "general",
+"n": 2,
+"q": "Pourquoi abaisse-t-on le TTL DNS avant une bascule ?",
+"a": [
+"Le TTL determine la duree pendant laquelle les resolveurs conservent une reponse en cache.",
+"Avec un TTL long, un changement d adresse met autant de temps a se propager, et une partie des clients continue de joindre l ancienne adresse.",
+"Abaisser le TTL au moins la duree de l ancien TTL avant la bascule garantit que les caches expirent rapidement au moment du basculement.",
+"Le TTL est remonte apres stabilisation pour ne pas charger inutilement les resolveurs.",
+"Sur ce projet, l abaissement du TTL est la seule operation menee sur la production le jour de la revue croisee."
+],
+"p": "Le jury peut demander quand abaisser exactement. La reponse est au moins un TTL avant, pas la veille au soir si le TTL vaut 24 heures."
+},
+{
+"id": "p095",
+"c": [
+"C12",
+"C5"
+],
+"t": "projet",
+"n": 3,
+"q": "Comment garantissez-vous que le transfert des series temporelles est complet ?",
+"a": [
+"Trois controles, tous executables depuis la machine source puisque l export est monte localement.",
+"Volume total compare des deux cotes, identique a quelques kilo-octets pres. Nombre de fichiers compare : un ecart signale une copie incomplete.",
+"Proprietaire des fichiers verifie sur la totalite, une seule ligne attendue en sortie du releve trie.",
+"Prealable indispensable : verifier que la destination est un point de montage actif.",
+"La barre oblique finale sur la source est significative : sans elle, le repertoire est recopie a l interieur de la cible et produit une arborescence imbriquee illisible.",
+"Une simulation prealable est executee : c est le dernier point ou une inversion source-cible reste sans consequence.",
+"Point a trancher : une comparaison d empreintes figure dans une de vos banques de questions comme methode de controle. Sur des centaines de milliers de fichiers en ecriture permanente, elle est plus longue que le transfert et non stable. Choisissez une seule methode et tenez-la."
+],
+"p": "Le jury peut demander si vous comparez des empreintes. Repondez par la methode que vous appliquez reellement, et sachez justifier pourquoi l autre a ete ecartee, plutot que d annoncer les deux."
+},
+{
+"id": "p096",
+"c": [
+"C18",
+"C12"
+],
+"t": "projet",
+"n": 2,
+"q": "Pourquoi la file de taches est-elle deployee sans persistance ?",
+"a": [
+"Elle sert de file et de cache pour la coordination du travail entre collecteurs. Son contenu est reconstructible.",
+"La persistance introduirait un volume a gerer, a sauvegarder et a restaurer pour une donnee sans valeur au-dela du cycle en cours.",
+"La perte du pod provoque au pire la reprise du cycle en cours, pas une perte de mesure : les mesures vont dans les series temporelles et en base.",
+"Version relevee sur la source mais redeployee vierge cote cible : aucune donnee n est migree.",
+"Les verrous applicatifs n y transitent pas : ils passent par la base, ce qui est la configuration par defaut de cette image."
+],
+"p": "Ne dites pas que c est un cache donc sans importance. Justifiez par le caractere reconstructible et par ce qui n y transite pas."
+},
+{
+"id": "p097",
+"c": [
+"C18"
+],
+"t": "projet",
+"n": 2,
+"q": "Un composant de cache present en production est exclu de la cible. Comment avez-vous etabli qu il etait inactif ?",
+"a": [
+"Le composant est deploye dans la pile d origine mais aucun service ne l utilise effectivement : la configuration applicative ne le designe pas comme magasin de cache.",
+"La decision d exclusion est documentee comme telle et non presentee comme un oubli.",
+"Interet de la demarche : une migration est le bon moment pour ne pas reconduire ce qui ne sert pas. Chaque composant reconduit sans justification est une dette portee plus loin.",
+"Meme raisonnement pour le mandataire inverse d origine, decommissionne a la bascule et remplace par la passerelle mutualisee du cluster."
+],
+"p": "Le jury peut demander la preuve de l inactivite. Une affirmation sans methode de verification est faible."
+},
+{
+"id": "p098",
+"c": [
+"C20",
+"C19"
+],
+"t": "projet",
+"n": 1,
+"q": "Comment votre procedure de migration est-elle organisee et pourquoi ce decoupage ?",
+"a": [
+"Quatre phases nommees : tests, nettoyage, migration reelle, retour arriere.",
+"Chaque phase comporte des points de controle avec un attendu explicite et un critere de sortie : on ne passe pas a la suite sans validation.",
+"Repartition sur quatre journees, avec la repetition en debut de semaine et la bascule en fin de semaine, pour laisser le temps d une revue conjointe.",
+"Aucune adresse ni chemin litteral dans le corps du document : un tableau de variables renseigne une fois sert de reference unique.",
+"Les versions anterieures sont conservees avec un releve des ecarts."
+],
+"p": "Le jury peut demander pourquoi documenter le retour arriere aussi precisement que l aller. Parce qu il s execute sous stress."
+},
+{
+"id": "p099",
+"c": [
+"C12",
+"C16"
+],
+"t": "projet",
+"n": 3,
+"q": "Comment dimensionnez-vous dix collecteurs ? Sur quelle base ?",
+"a": [
+"Point de depart : la plateforme d origine comptait huit collecteurs actifs, satures a 99-101 pour cent de leur capacite, avec environ 1 320 equipements reportes par cycle.",
+"Dix collecteurs donnent environ 25 pour cent de capacite supplementaire par rapport aux huit d origine.",
+"Mesure de controle cote cible : occupation relevee a 83 pour cent, donc une marge reelle sans surdimensionnement manifeste.",
+"Propriete acquise par la conception : le nombre de collecteurs est un champ du manifest. Un sous-dimensionnement se corrige par un commit, pas par la preparation d une machine.",
+"Le dimensionnement automatique a ete examine puis mis de cote le 28 juillet, decision soumise et arbitree."
+],
+"p": "Si vous annoncez 83 pour cent d occupation, sachez dire a quelle date, sur quel parc et avec quel intervalle de collecte. Un chiffre isole appelle immediatement ces trois questions."
+},
+{
+"id": "p100",
+"c": [
+"C2",
+"C1"
+],
+"t": "projet",
+"n": 2,
+"q": "Un collecteur redemarre en boucle apres une modification. Quelle est votre sequence de diagnostic, sans acces au cluster ?",
+"a": [
+"Arbre des ressources, pod concerne, onglet de synthese : etat, motif de terminaison, compteur de redemarrages.",
+"Onglet des evenements : echecs de montage, echecs de sonde, evictions, defauts de tirage d image.",
+"Onglet des journaux : si le pod redemarre trop vite, cibler le journal de l instance precedente.",
+"Comparaison au niveau de l application : verifier que ce qui est applique correspond a ce qui a ete commite.",
+"Depot Git : relire le dernier commit. Si l hypothese se confirme, revert plutot que correction en avant.",
+"Si une commande dans le conteneur est indispensable, elle est formulee comme une demande a l equipe proprietaire du cluster et signalee comme telle."
+],
+"p": "Le jury peut suggerer de supprimer le pod pour voir. C est explicitement interdit et vous devez savoir pourquoi."
+},
+{
+"id": "p101",
+"c": [
+"C19",
+"C20"
+],
+"t": "projet",
+"n": 2,
+"q": "Si un collegue devait reprendre ce projet demain, que lui donneriez-vous ?",
+"a": [
+"Le depot Git de production, qui contient l integralite de l etat declare, avec la separation entre manifests synchronises et manifests non promus.",
+"La procedure de migration en version courante, avec ses phases et ses criteres de sortie.",
+"La base de connaissances de vingt-quatre fiches, entree par symptome, avec son index.",
+"Le cahier des charges avec ses onze points ouverts nommant leur interlocuteur : c est la liste de ce qui reste a obtenir.",
+"La procedure de sauvegarde et restauration, en signalant explicitement l etat reel de son test.",
+"Le point le plus difficile a transmettre est la contrainte d acces : sans elle, la moitie des choix de methode parait absurde.",
+"Ce n est pas une hypothese : mon alternance se termine avant la bascule, c est l equipe qui la conduira."
+],
+"p": "Repondre je lui expliquerais est la mauvaise reponse. C est le test reel de votre documentation."
+},
+{
+"id": "p102",
+"c": [
+"C16"
+],
+"t": "general",
+"n": 2,
+"q": "Comment la plateforme decouvre-t-elle un equipement et que fait-elle ensuite ?",
+"a": [
+"La decouverte interroge l equipement en SNMP pour identifier son systeme, ses interfaces, ses capteurs et ses modules pris en charge, puis alimente l inventaire en base. Elle exploite aussi les protocoles d adjacence pour construire la topologie.",
+"L interrogation periodique porte ensuite sur les objets identifies et ecrit les valeurs dans les series temporelles via le cache, tandis que les etats vont en base.",
+"Les deux traitements ont des rythmes distincts : la decouverte est peu frequente, l interrogation suit l intervalle configure.",
+"Les MIB definissent la correspondance entre identifiants numeriques et grandeurs lisibles. Celles des equipements du parc sont natives a l image utilisee, ce qui evite de maintenir une image derivee.",
+"La distinction entre inventaire en base et mesures en series temporelles explique pourquoi la migration comporte deux transferts de nature differente."
+],
+"p": "Le jury peut demander pourquoi les mesures ne sont pas en base. Volume, ecriture continue et rotation automatique des archives."
+},
+{
+"id": "p103",
+"c": [
+"C9"
+],
+"t": "general",
+"n": 2,
+"q": "Qu est-ce qu un domaine de diffusion, et pourquoi cela compte-t-il pour l annonce de votre adresse de service ?",
+"a": [
+"Un domaine de diffusion est l ensemble des interfaces qui recoivent une trame de diffusion emise par l une d elles. Il est delimite par les routeurs et segmente par les VLAN.",
+"L annonce de niveau 2 repose sur ARP : un noeud repond aux requetes pour l adresse de service. Seuls les hotes du meme domaine recoivent ces requetes.",
+"Consequence : l adresse attribuee doit appartenir au sous-reseau du segment des noeuds, sinon aucun client exterieur ne la joindra.",
+"C est precisement pourquoi le point ouvert sur le reservoir d adresses conditionne celui sur la methode de bascule des journaux."
+],
+"p": "Question technique reelle derriere un point ouvert du projet. Savoir relier les deux montre que le point ouvert n est pas une formalite."
+},
+{
+"id": "p104",
+"c": [
+"C14",
+"C12"
+],
+"t": "general",
+"n": 2,
+"q": "Quelle difference entre virtualisation et conteneurisation, et pourquoi les deux coexistent ici ?",
+"a": [
+"Une machine virtuelle embarque un systeme d exploitation complet sur un hyperviseur : isolation forte, empreinte importante, demarrage lent.",
+"Un conteneur partage le noyau de l hote et isole par espaces de noms et groupes de controle : empreinte faible, demarrage rapide, isolation moindre.",
+"Les deux coexistent : les noeuds du cluster sont des machines, les charges applicatives des conteneurs. La virtualisation fournit la resilience materielle, l orchestration la resilience applicative.",
+"Consequence de securite : un conteneur ne constitue pas une frontiere de securite equivalente a une machine virtuelle. Un echappement atteint le noyau de l hote."
+],
+"p": "Le jury peut demander si un conteneur isole autant qu une machine virtuelle. La reponse non, avec la raison du noyau partage, est attendue."
+},
+{
+"id": "p105",
+"c": [
+"C19",
+"C17"
+],
+"t": "projet",
+"n": 2,
+"q": "Quels risques aviez-vous identifies et lequel s est effectivement realise ?",
+"a": [
+"Dix risques cotes sur deux axes, probabilite et impact, de un a quatre, la criticite etant le produit des deux, avec une recotation datee du 20 aout.",
+"Risque le plus grave initialement : la corruption des mesures par ecriture concurrente, parce que le dommage est irreversible et n apparait qu a la lecture, potentiellement des semaines plus tard. Ramene de douze a quatre par une contrainte inscrite dans le manifest.",
+"Risque realise : la perte d historique lors du transfert, qui fait maintenant l objet d une verification de montage prealable.",
+"Constat structurel : les risques maitrises techniquement ont tous baisse, ceux qui dependaient d une decision exterieure ont tous augmente ou stagne.",
+"Cause : les mesures de reduction des risques externes reposent toutes sur coordonner, demander, soumettre, sans echeance, sans escalade, sans solution de repli."
+],
+"p": "Ce constat est fort parce qu il est structurel et non anecdotique. Le jury peut demander ce que vous auriez fait autrement."
+},
+{
+"id": "p106",
+"c": [
+"C12"
+],
+"t": "projet",
+"n": 3,
+"q": "Quel est le point de defaillance unique le plus grave de votre architecture cible, et qu avez-vous fait pour le reduire ?",
+"a": [
+"Le cache d ecriture : replique unique par contrainte de format, avec 20 a 25 minutes d indisponibilite au remplacement du pod.",
+"Ce qui reduit l impact : les donnees sont sur stockage externe, donc la perte du pod n est pas une perte de donnees. Le StatefulSet replanifie automatiquement.",
+"Ce qui n est pas resolu : pendant la fenetre de remplacement, les collecteurs ne peuvent plus ecrire. La perte de mesure sur cette fenetre est reelle.",
+"Autres candidats a examiner honnetement : la baie de stockage, l instance de base externe, le hub de deploiement pour la chaine de livraison.",
+"Aucune de ces trois ne releve du perimetre du projet, ce qui doit etre dit plutot que masque."
+],
+"p": "Le jury cherchera le point de defaillance que vous ne citez pas. Citez-les tous, y compris hors perimetre."
+},
+{
+"id": "p107",
+"c": [
+"C16",
+"C12"
+],
+"t": "projet",
+"n": 3,
+"q": "Comment testeriez-vous que la perte d un collecteur n interrompt pas la collecte ?",
+"a": [
+"Trois scenarios distincts, qui n empruntent pas les memes mecanismes.",
+"Perte du processus dans le pod : la sonde detecte, le conteneur redemarre, la replanification n intervient pas.",
+"Perte du noeud : la sonde n intervient pas, la replanification revient au controleur sur un delai plus long, de l ordre de plusieurs minutes.",
+"Pod injoignable sur le reseau alors que son processus tourne : aucun des deux mecanismes ne se declenche. C est le cas le plus proche de l incident observe, et le test doit etablir s il est couvert.",
+"Deux de ces scenarios ne pourront pas etre prononces conformes tant que les exigences de service ne sont pas arbitrees."
+],
+"p": "Ne repondez pas je tue un pod et je regarde. Le jury attend les trois modes de defaillance distincts."
+},
+{
+"id": "p108",
+"c": [
+"C20",
+"C1"
+],
+"t": "projet",
+"n": 1,
+"q": "Pourquoi conservez-vous des fiches d incident liees a des choix techniques abandonnes ?",
+"a": [
+"Elles expliquent pourquoi certains reglages subsistent : un parametre apparemment inutile est souvent le residu d une contrainte disparue.",
+"Elles attestent que les solutions ecartees ont reellement ete mises en oeuvre, ce qui donne du poids au comparatif : le choix repose sur une experience de mise en oeuvre et non sur une lecture de documentation.",
+"Elles evitent de refaire un essai deja mene et deja infructueux.",
+"Elles sont identifiees comme archivees pour ne pas etre confondues avec l etat courant."
+],
+"p": "C est aussi ce qui rend votre comparatif credible. Le lien entre base de connaissances et choix de solution merite d etre fait explicitement."
+},
+{
+"id": "p109",
+"c": [
+"C2",
+"C16"
+],
+"t": "general",
+"n": 2,
+"q": "Qu est-ce qu une metrique, un seuil et une alerte ? Ou se situe la difficulte reelle ?",
+"a": [
+"Metrique : une valeur mesuree periodiquement. Seuil : une valeur de comparaison. Alerte : la notification declenchee quand une condition est verifiee pendant une duree donnee.",
+"La difficulte n est pas de mesurer, c est de definir des conditions qui ne produisent ni bruit ni silence.",
+"Une alerte trop sensible produit du bruit, et le bruit produit l inattention. Une alerte trop laxiste produit le silence, comme l alarme recue 148 fois sans notification.",
+"La duree de la condition compte autant que le seuil : un pic isole n est pas un incident.",
+"Une alerte doit designer une action. Une alerte sur laquelle personne ne peut agir doit etre supprimee, pas ignoree."
+],
+"p": "Le jury de professionnels a vecu la fatigue d alerte. Une reponse purement technique passe a cote."
+},
+{
+"id": "p110",
+"c": [
+"C19"
+],
+"t": "projet",
+"n": 1,
+"q": "Combien de temps a dure le projet, et sur quoi le temps est-il reellement parti ?",
+"a": [
+"Dix-sept mois, avec deux jours par semaine disponibles puisque le projet releve du perimetre transverse.",
+"Reperes : cadrage de l hiver 2024-2025 a fevrier 2026, maquettage du 14 avril au 7 mai 2026, socle de production du 27 juillet au 2 aout, mesures de charge le 21 aout, arrete du rapport au 5 septembre.",
+"Constat traversant les vingt-quatre incidents : la quasi-totalite releve du socle et non de l application supervisee.",
+"Formulation retenue : ce que le projet a coute, c est l apprentissage d une plateforme, pas le portage d un logiciel. Le temps est alle au diagnostic bien plus qu a la configuration.",
+"Effet du maquettage : une fois le cluster disponible, le socle de production a tenu en une semaine."
+],
+"p": "Cette reponse est forte parce qu elle est contre-intuitive et verifiable. Preparez-la avec les dates."
+},
+{
+"id": "p111",
+"c": [
+"C12",
+"C19"
+],
+"t": "general",
+"n": 2,
+"q": "Que contient exactement votre depot de production et pourquoi ce decoupage ?",
+"a": [
+"A la racine, la declaration de l application elle-meme aupres de l outil de deploiement.",
+"Un repertoire des manifests synchronises, a plat, sans sous-dossier, designe par le chemin source de l application.",
+"Un repertoire des manifests non promus, ce qui permet de versionner un composant avant de le deployer sans qu il soit synchronise.",
+"Interet : la promotion d un composant est un deplacement de fichier trace par un commit, pas une recreation.",
+"Regle stricte : aucun commentaire dans les fichiers de configuration, et les metadonnees d execution sont nettoyees avant tout commit."
+],
+"p": "Le jury peut demander comment vous evitez qu un manifest non promu soit synchronise par erreur. La reponse est le chemin source declare."
+},
+{
+"id": "p112",
+"c": [
+"C17",
+"C18"
+],
+"t": "projet",
+"n": 3,
+"q": "Votre gain d exploitation n est pas chiffre. Comment defendez-vous le projet sans ce chiffre ?",
+"a": [
+"Le fait est assume : le volume horaire mensuel consacre a la maintenance n a pas ete obtenu aupres du commanditaire, et figure en point ouvert.",
+"Consequence honnete : le gain d exploitation attendu reste qualitatif, alors que les limites de charge, de stockage et de securite sont chiffrees.",
+"Ce qui reste chiffre et opposable : 99 a 101 pour cent de capacite consommee, environ 1 320 equipements reportes par cycle, une defaillance de collecteur invisible pendant plus de deux heures, les series temporelles ecrites sur le volume systeme de l hote.",
+"La justification repose donc sur des limites mesurees, pas sur un retour sur investissement estime.",
+"Ce qui aurait du etre fait : demander cette donnee au moment du recueil initial, pas en fin de projet."
+],
+"p": "Ne fabriquez pas un chiffre de gain. Une justification par des limites mesurees est defendable, un retour sur investissement invente ne l est pas."
+},
+{
+"id": "p113",
+"c": [
+"C21"
+],
+"t": "anglais",
+"n": 2,
+"q": "Could you explain what GitOps means, in your own words?",
+"a": [
+"Formulation simple : the desired state of the platform is described in a Git repository, and an agent continuously compares the running cluster to that description and fixes any difference.",
+"Consequences a citer : every change is a commit, so it has an author, a date and a reason. Rolling back is reverting a commit.",
+"Limite a mentionner : anything that is not in the repository is outside the model, which is the case for secret values.",
+"Vocabulaire : desired state, drift, reconciliation, to prune, self-healing."
+],
+"p": "Le jury peut poser une seule question en anglais pour tester la reaction. Ne basculez pas en francais pour repondre."
+},
+{
+"id": "p114",
+"c": [
+"C3",
+"C12"
+],
+"t": "general",
+"n": 2,
+"q": "Quelles bonnes pratiques de securite avez-vous appliquees aux conteneurs, et lesquelles manquent ?",
+"a": [
+"Appliquees : images figees sur une version explicite, tirees d un registre interne controle, secrets hors du depot versionne, compte de base limite a son schema, confiance de l autorite interne injectee au niveau systeme.",
+"Manquantes et identifiees comme telles : politiques reseau concues mais non deployees, pas de chiffrement mutuel entre pods, pas de chiffrement des secrets dans le depot, pas d analyse de vulnerabilite des images dans une chaine automatisee.",
+"Non verifie faute d acces : contexte de securite effectif des pods, execution en utilisateur non privilegie, systeme de fichiers en lecture seule.",
+"Ecart residuel connu : un mot de passe subsiste en argument de ligne de commande dans une procedure. Sur une plateforme certifiee, ce n est pas anodin."
+],
+"p": "Le jury valorise la distinction entre ce qui est fait et ce qui est identifie. Revendiquer une politique non deployee serait une faute."
+},
+{
+"id": "p115",
+"c": [
+"C19",
+"C20"
+],
+"t": "projet",
+"n": 2,
+"q": "Sur quoi porte la divergence entre le volume de donnees annonce dans vos differents documents ?",
+"a": [
+"Plusieurs valeurs coexistent : environ 745 gigaoctets et 658 388 fichiers dans le rapport et l oral, 723 gigaoctets dans la procedure de migration, et un perimetre reduit a 672 gigaoctets apres reduction du perimetre de fusion.",
+"Ces valeurs ne sont pas necessairement contradictoires si chacune est datee et rattachee a un perimetre. Ce qui est fautif est de les presenter sans date ni perimetre.",
+"Meme situation sur le nombre d equipements : environ 6 200 a l oral, 6 536 en mesure de production, 6 908 concernes par la fusion.",
+"Action a mener avant soutenance : fixer une valeur de reference par grandeur, sa date et sa methode de comptage, puis harmoniser rapport, procedures et diaporama."
+],
+"p": "Le jury interroge sur le rapport et sur le diaporama. Une divergence chiffree entre deux de vos propres documents est un point d attaque immediat."
+},
+{
+"id": "p116",
+"c": [
+"C2",
+"C14"
+],
+"t": "general",
+"n": 2,
+"q": "Comment met-on a jour un cluster Kubernetes en production sans interruption de service ?",
+"a": [
+"Sequence : plan de controle d abord, noeuds ensuite, un par un, en respectant l ecart de version tolere entre le serveur d API et les kubelet.",
+"Pour chaque noeud : interdire de nouveaux placements, evacuer les pods existants en respectant les budgets de perturbation, mettre a jour, puis reautoriser.",
+"Prealables : sauvegarde d etcd, lecture des notes de version pour les changements de rupture, verification des ressources depreciees.",
+"Point d attention : un budget trop strict sur un composant a replique unique bloque l evacuation. Le cache d ecriture impose de toute facon une fenetre de plusieurs dizaines de minutes.",
+"Cette operation ne releve pas de mon perimetre : elle appartient au proprietaire de l infrastructure."
+],
+"p": "Le jury peut demander l ecart de version tolere. Si vous ne le savez pas precisement, dites-le plutot qu annoncer un chiffre faux."
+},
+{
+"id": "p117",
+"c": [
+"C16",
+"C5"
+],
+"t": "general",
+"n": 3,
+"q": "Un graphe presente un trou sur plusieurs heures. Quelles causes envisagez-vous et dans quel ordre les testez-vous ?",
+"a": [
+"Le trou signifie absence de valeur ecrite pour cette periode, pas necessairement absence de collecte.",
+"Causes a distinguer, par cout de test croissant : equipement injoignable pendant la periode, collecteur arrete ou sature, cache d ecriture indisponible ou en cours de vidage, fichier non ecrit pour cause de permissions ou de montage, ecriture concurrente ayant corrompu le fichier.",
+"Test discriminant simple : comparer avec un autre equipement du meme collecteur. Si tous sont troues, la cause est cote collecteur ou cote cache. Si un seul, la cause est cote equipement.",
+"Contexte du projet : un remplacement du pod portant le cache produit exactement ce symptome sur 20 a 25 minutes, et c est attendu."
+],
+"p": "Ne partez pas sur la corruption en premiere hypothese. C est la plus grave mais la moins probable, et le test le plus couteux."
+},
+{
+"id": "p118",
+"c": [
+"C17",
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Le nom de service publie n est pas definitivement confirme. Quel est le risque et comment le gerez-vous ?",
+"a": [
+"Le nom retenu est le seul declare dans les HTTPRoute. L ancien nom de production n est pas couvert en l etat : une requete sur ce nom n obtiendrait aucune reponse de la passerelle.",
+"Risque concret : les liens enregistres, les favoris, les integrations et les procedures existantes referencent l ancien nom. La bascule casserait ces acces sans message d erreur explicite.",
+"Traitement : point ouvert pour la confirmation definitive du nom, et arbitrage prevu avant la bascule.",
+"Solution technique disponible si le double nom est retenu : declarer les deux noms dans la HTTPRoute, sous reserve de la couverture du certificat.",
+"Le certificat wildcard interne ne couvre pas l ancien nom, qui appartient a un autre niveau de domaine."
+],
+"p": "La limite du certificat est le point que le jury peut soulever. Preparez-le."
+},
+{
+"id": "p119",
+"c": [
+"C2",
+"C1"
+],
+"t": "general",
+"n": 2,
+"q": "Comment verifiez-vous qu un service est reellement disponible et pas seulement demarre ?",
+"a": [
+"Un processus demarre, un port ouvert et un service rendu sont trois etats distincts.",
+"Un port ouvert prouve qu un processus ecoute, pas qu il traite. Un montage bloque laisse la socket ouverte.",
+"La verification utile est fonctionnelle et de bout en bout : pour le web, une requete authentifiee sur une page qui interroge la base et lit une serie temporelle. Pour la collecte, l apparition effective d un point de mesure recent.",
+"C est le meme raisonnement que pour la restauration : seul l affichage effectif d un graphe prouve la lisibilite de la donnee.",
+"Consequence de conception : privilegier une sonde de disponibilite fonctionnelle plutot qu un simple test de port."
+],
+"p": "Le jury peut demander pourquoi vous n avez alors pas de sonde de vivacite fonctionnelle sur le cache. La reponse est le cout du faux positif."
+},
+{
+"id": "p120",
+"c": [
+"C18",
+"C17"
+],
+"t": "projet",
+"n": 3,
+"q": "Un membre du jury vous dit que Kubernetes est surdimensionne pour superviser quelques milliers d equipements. Que repondez-vous ?",
+"a": [
+"Ne pas contester le fond : l objection est legitime si on ne regarde que la charge applicative.",
+"Premier argument : le socle existait deja dans l entreprise, avec sa forge, son outil de deploiement et son registre. Le projet n introduit pas une technologie, il en utilise une deja exploitee. Le cout d exploitation marginal est celui d une application supplementaire.",
+"Deuxieme argument : l objectif n est pas la performance mais la reproductibilite et l ajout de collecteurs sans intervention systeme. Le scenario alternatif repond a la charge, pas a ce besoin.",
+"Troisieme argument : les trois exigences imperatives non satisfaites par l alternative sont enoncees et verifiables.",
+"Reconnaitre la limite : si le socle n avait pas existe, le rapport cout-benefice aurait ete different et l alternative aurait ete defendable."
+],
+"p": "L erreur est de defendre Kubernetes en soi. La defense tient au contexte : socle preexistant plus besoin de reproductibilite."
+},
+{
+"id": "o121",
+"c": [
+"C18",
+"C17"
+],
+"t": "projet",
+"n": 3,
+"q": "Une plateforme de supervision licenciee existe deja dans le groupe. Pourquoi ne pas y transferer le parc reseau et retirer l outil migre du service ?",
+"a": [
+"Le cadrage ne posait pas cette question. Je l ai posee moi-meme au commanditaire, qui l a ecartee.",
+"Premier argument, le plus structurant, et il n est pas de cout : les deux outils n ont pas le meme modele de decouverte. L outil migre decouvre le parc par les protocoles d adjacence et produit ses graphes par interface sans qu aucun service ait a etre defini. L autre repose sur une modelisation explicite, chaque hote et chaque service etant declares. Transferer plusieurs milliers d equipements reseau supposerait de les modeliser un par un.",
+"Deuxieme argument : l historique n est pas transposable. Les series temporelles sont dans un format propre a l outil migre. Une absorption repartirait d un historique vide, ce qui contredit une exigence de mon propre cahier des charges.",
+"Troisieme argument : la demande portait sur la charge d exploitation d une plateforme dont la pertinence fonctionnelle n etait pas contestee. L elargir aurait transforme une migration d infrastructure en refonte de la supervision du groupe.",
+"A dire soi-meme : la question a ete posee de vive voix, aucune decision formalisee n en est sortie, et la comparaison a ete instruite en redigeant le rapport, pas au cadrage. La justification tient, mais elle est reconstituee."
+],
+"p": "Le point faible est la reconstitution a posteriori. L annoncer vous-meme desamorce la relance ; le laisser decouvrir la transforme en soupcon de justification apres coup."
+},
+{
+"id": "o122",
+"c": [
+"C18"
+],
+"t": "projet",
+"n": 2,
+"q": "Et le cout de licence de l autre plateforme ? Vous auriez economise combien ?",
+"a": [
+"Le modele est facture par hote supervise. Avec plusieurs milliers d equipements reseau, l ordre de grandeur du cout changerait.",
+"Aucun chiffrage n a ete conduit. Ne donner aucun montant.",
+"Ce n est pas l argument determinant : l argument decisif reste la perte des sondes reseau natives et la reconstruction de la modelisation.",
+"Si l on insiste : dire que le chiffrage aurait du etre demande au commanditaire, et que son absence est une limite de l instruction."
+],
+"p": "Avancer un montant non verifie est la faute la plus couteuse ici. Le jury peut connaitre les ordres de grandeur du marche."
+},
+{
+"id": "o123",
+"c": [
+"C19"
+],
+"t": "projet",
+"n": 3,
+"q": "Votre chemin critique ne passe pas par vos propres taches. Qu est-ce que cela vous a appris ?",
+"a": [
+"Le chemin qui determine la date de fin passe par trois livraisons hors de mon perimetre : la mise a disposition des serveurs, leur mise en service en cluster, puis la mise a disposition d une instance de base de donnees.",
+"Consequence sur la methode de travail : le maquettage n etait pas un exercice preparatoire de confort, c est ce qui m a permis d avancer pendant que la cible n existait pas. Une fois le cluster disponible, le socle de production a tenu en une semaine.",
+"Constat structurel plus large : aucune des equipes concernees n a de lien hierarchique avec mon poste, le commanditaire non plus. Une demande peut etre formulee et relancee, pas priorisee.",
+"Ce que j aurais du faire : fixer une date de reponse attendue a chaque demande externe, la tracer, et remonter au tuteur ou au responsable de territoire en cas de non-reponse. Je disposais de ce canal, je ne l ai pas utilise."
+],
+"p": "Ne pas se defausser sur les autres equipes. La faute a reconnaitre est l absence d echeance et d escalade, pas la lenteur des tiers."
+},
+{
+"id": "o124",
+"c": [
+"C19",
+"C20"
+],
+"t": "projet",
+"n": 2,
+"q": "Comment avez-vous trace les decisions du projet ?",
+"a": [
+"509 messages echanges avec le commanditaire sur dix-huit mois, a parts egales, sur un canal unique.",
+"Toutes les decisions d architecture y ont ete soumises et arbitrees, avec leurs dates : externalisation de la base, structure de la politique de synchronisation, mise de cote du dimensionnement automatique.",
+"Le depot Git tient lieu de journal de bord, chaque commit portant un motif.",
+"Ce que cela dit de positif : tout est ecrit, et c est la seule source qui a permis de reconstituer les decisions au moment de rediger le rapport.",
+"Ce que cela dit de negatif : aucun compte rendu formel, aucun point d avancement periodique. Les echanges sont continus et reactifs, jamais structures."
+],
+"p": "Le jury peut demander comment un tiers retrouverait une decision dans 509 messages. C est la vraie faiblesse : trace ne veut pas dire exploitable."
+},
+{
+"id": "o125",
+"c": [
+"C19"
+],
+"t": "projet",
+"n": 3,
+"q": "Votre matrice RACI fait apparaitre une anomalie de gouvernance. Laquelle ?",
+"a": [
+"Une seule autorite de validation sur l ensemble du projet, le commanditaire, y compris sur des travaux realises par d autres equipes.",
+"Sur la mise en service du cluster, il cumule la realisation et la validation. Personne ne controle ce travail de l exterieur.",
+"Quatre taches ne sont pas realisees par moi : mise en service du cluster, livraison de la base, provisionnement du schema, attribution des adresses des services de reception. Trois sont sur le chemin critique.",
+"Cumul supplementaire a signaler : mon commanditaire est aussi mon referent technique. Cela simplifie les echanges mais reduit le contradictoire, aucun tiers ne challenge les choix techniques.",
+"La matrice est construite sur vingt-quatre taches et six parties prenantes."
+],
+"p": "Le dire plutot que le defendre. Un candidat qui identifie une anomalie de gouvernance dans son propre projet marque des points."
+},
+{
+"id": "o126",
+"c": [
+"C19",
+"C5"
+],
+"t": "projet",
+"n": 3,
+"q": "Votre estimation de duree de transfert etait fausse d un facteur quatre. Expliquez.",
+"a": [
+"Pour planifier la fenetre de migration il fallait une duree de transfert. J ai raisonne a partir du volume total et d un debit reseau suppose, et j ai annonce une fenetre.",
+"Trois semaines plus tard, la mesure reelle a montre que la fenetre etait quatre fois trop courte.",
+"La cause n est pas le volume mais le nombre de fichiers. Transferer plusieurs centaines de gigaoctets en gros fichiers, c est du debit. Transferer plus de six cent mille petits fichiers, c est autant d ouvertures, de fermetures et d operations de metadonnees, et sur un montage reseau cela domine le temps total.",
+"L estimation etait fausse parce que je raisonnais sur la mauvaise variable.",
+"Regle qui en decoule : une heure de mesure aurait evite trois semaines de planning faux. Quand une duree conditionne un planning, je la mesure avant de l annoncer."
+],
+"p": "Enoncer l erreur, la cause, la correction, et passer a la suite. Se justifier au-dela affaiblit une reponse qui est deja bonne."
+},
+{
+"id": "o127",
+"c": [
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous avez utilise deux niveaux de planification. Lesquels, et lequel a manque ?",
+"a": [
+"Micro-planning permanent : un tableau physique a trois colonnes melant le projet et les taches courantes du poste. C est l outil adapte a un travail fragmente sur deux jours par semaine.",
+"Son defaut, paye plus tard : un tableau physique ne conserve aucun historique. Rien a produire quand il a fallu reconstituer le deroulement.",
+"Macro-planning apparu seulement le 24 juillet 2026, quand la base a ete annoncee. J ai propose un decoupage sur une semaine ; le commanditaire ne l a pas retenu et a contre-propose le jour meme, en supprimant notamment la phase de surveillance longue.",
+"Enseignement : j ai produit un macro-planning au moment ou il ne servait plus qu a organiser une semaine. Dix mois plus tot, il aurait rendu visibles les dependances externes avant qu elles ne deviennent bloquantes.",
+"Resultat mesurable : quatre jours planifies, six semaines ecoulees, bascule toujours non faite."
+],
+"p": "Le jury peut demander pourquoi ne pas avoir fait de macro-planning plus tot. La reponse honnete est que je n en voyais pas l utilite sur un projet mene seul."
+},
+{
+"id": "o128",
+"c": [
+"C19",
+"C12"
+],
+"t": "projet",
+"n": 3,
+"q": "Vous avez leve volontairement une mesure de reduction de risque. Laquelle, et qu est-ce que cela a produit ?",
+"a": [
+"La double collecte devait etre evitee par un sequencement strict : une seule plateforme collectant a la fois.",
+"J ai leve cette mesure volontairement, pour valider la cible en conditions reelles sur le parc complet plutot que sur un echantillon.",
+"Consequence : le risque est passe de probable a avere, et il est devenu le plus critique du projet. Les deux jeux d historique divergent depuis fin juillet, et leur reunification est un arbitrage encore ouvert.",
+"Enseignement de methode assume : quand on leve une mesure de reduction, on recote le risque immediatement. Je ne l ai pas fait.",
+"Le benefice obtenu est reel : c est cette collecte parallele qui a revele la saturation de la plateforme d origine.",
+"Cout reel a citer : la collecte consomme de la bande passante en continu, donc deux plateformes actives doublent la charge reseau induite. Ne citer un ordre de grandeur que s il a ete mesure.",
+"Ce qui rendait le risque acceptable : bases et volumes distincts, plateforme d origine intacte et restee la reference."
+],
+"p": "C est un bon exemple d arbitrage risque contre information. Le defendre comme un choix, pas comme un oubli, mais reconnaitre la recotation manquante."
+},
+{
+"id": "o129",
+"c": [
+"C12",
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Qu est-ce que votre maquette a permis de trouver, et qu est-ce qu elle ne pouvait pas reproduire ?",
+"a": [
+"Quatre machines virtuelles sur un reseau isole : deux formant le cluster, plan de controle et noeud de travail, et deux volontairement a l exterieur portant la base, le stockage et la chaine de deploiement.",
+"Ce point est ce qui a rendu la maquette utile. Tout regrouper dans le cluster aurait ete plus simple a monter, mais aurait valide une architecture que je n allais pas deployer.",
+"Ce qu elle a permis de trouver : les manifests et leur synchronisation, les defauts de l image officielle, les problemes de resolution de noms. Trois des vingt-quatre incidents y ont ete decouverts, pas en production.",
+"Ce qu elle ne reproduit pas : la volumetrie reelle, le parc complet a interroger, les debits reels d une baie de stockage. Tout ce qui releve de l echelle est passe au travers.",
+"C est exactement la que s est logee l erreur de planning sur le transfert.",
+"Duree de montage : deux a trois semaines, l essentiel du temps passe a comprendre les problemes plutot qu a installer."
+],
+"p": "La limite de la maquette est la meilleure partie de la reponse. Un candidat qui ne voit pas ce que sa maquette ne teste pas est le plus expose."
+},
+{
+"id": "o130",
+"c": [
+"C3",
+"C12"
+],
+"t": "projet",
+"n": 3,
+"q": "En quoi la certification de securite du groupe a-t-elle determine une decision d architecture ?",
+"a": [
+"Le groupe heberge des donnees de sante et est certifie sur son systeme de management de la securite. Toute intervention sur une plateforme de production doit etre tracee, motivee et reversible.",
+"La decision qui en decoule : aucune commande d ecriture sur le cluster, toute modification passant par un commit puis une synchronisation.",
+"Consequence concrete : toute intervention est ecrite avant d etre appliquee, avec un auteur, une date et un motif, et le retour arriere est un revert.",
+"Cout assume : le diagnostic est nettement plus lent, et certaines verifications exigent de passer par un tiers.",
+"Ecart residuel a signaler soi-meme : un mot de passe subsiste en argument de ligne de commande dans une procedure. Identifie, non corrige. Dans ce contexte de certification, ce n est pas anodin."
+],
+"p": "Le jury de professionnels appreciera le lien entre exigence de certification et choix technique. Mais il relevera l ecart residuel si vous ne le citez pas."
+},
+{
+"id": "o131",
+"c": [
+"C1",
+"C12"
+],
+"t": "projet",
+"n": 3,
+"q": "L outil de deploiement detectait un ecart permanent sur un secret et le reappliquait sans fin. Quelle etait la cause ?",
+"a": [
+"Boucle de reconciliation permanente : l outil comparait l etat declare et l etat deploye, concluait a une difference, reappliquait, et recommencait.",
+"La cause etait le mode de declaration du secret dans le manifest, qui creait une difference apparente entre ce qui etait decrit et ce qui etait effectivement stocke dans le cluster.",
+"Correction : changer le mode de declaration pour que la representation versionnee corresponde a la representation stockee. La boucle s est arretee.",
+"Enseignement : un ecart permanent signale presque toujours une difference de representation, pas une derive reelle du cluster. Chercher d abord la normalisation appliquee par le serveur d API.",
+"Point commun avec les autres incidents : la cause n etait pas la ou le symptome pointait."
+],
+"p": "Le jury peut demander quels champs sont normalises par le serveur d API. Preparez au moins la notion de champs par defaut ajoutes a l admission."
+},
+{
+"id": "o132",
+"c": [
+"C2",
+"C16"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous avez triple le parc de bornes sans fil. Quel lien avec la supervision ?",
+"a": [
+"De janvier a mai 2026, le parc est passe de 158 a 401 bornes, provisionnees par playbooks.",
+"Chaque borne ajoutee est un equipement de plus a decouvrir, a interroger et a stocker : trois cents equipements supplementaires alimentent directement la charge de collecte.",
+"C est un des elements qui rendent la question du dimensionnement non theorique : le parc croit par les projets menes en parallele, pas seulement par les integrations d etablissements.",
+"Cela renforce l exigence d ajout de collecteur par modification d un parametre : sans elle, chaque vague de densification impose une preparation de machine."
+],
+"p": "Le jury peut demander l impact chiffre sur la charge de collecte. Si vous ne l avez pas mesure, dites-le plutot que de l estimer a voix haute."
+},
+{
+"id": "o133",
+"c": [
+"C6",
+"C16"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous avez mesure la redondance du parc d acces. Quelle methode et quel resultat ?",
+"a": [
+"88 equipements examines, avec un script de collecte separe d un script de depouillement, et un fichier d inventaire distinct.",
+"Resultat : 44 pour cent du parc d acces effectivement redonde. Le reste est raccorde par un lien unique, ce qui constitue un point de fragilite identifie.",
+"Interet du decoupage collecte puis depouillement : la collecte est couteuse et se fait une fois, le depouillement se relance a chaque changement de critere de classement.",
+"Une reserve de methode est documentee avec le resultat, pas separement : le chiffre est donne avec ce qui peut le fausser.",
+"Ce type de mesure est ce qui transforme une impression en constat opposable, comme pour la saturation de la collecte."
+],
+"p": "Le jury peut demander ce que vous avez fait du resultat. Un constat sans suite est un demi-travail : preparez la reponse sur ce qui en decoule."
+},
+{
+"id": "o134",
+"c": [
+"C2",
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous avez remplace le coeur de reseau. Comment avez-vous prepare cette intervention ?",
+"a": [
+"Intervention du 11 decembre 2025, de 21 heures a 1 heure du matin : deux chassis remplaces par une pile.",
+"Fenetre nocturne parce qu un coeur de reseau porte la totalite des flux du site, y compris ceux liees aux activites de soins.",
+"Precedent methodologique applique sur la meme periode : la migration du VLAN de telephonie sur 165 postes, terminee en decembre 2025, ou la procedure avait ete testee avant bascule. Cela m a evite de decouvrir les problemes en production.",
+"C est la meme logique que la repetition prevue avant la migration de la supervision : une procedure non repetee est une hypothese."
+],
+"p": "Le jury peut demander votre plan de retour arriere sur cette nuit-la. Preparez-le, c est une question naturelle sur une intervention de coeur de reseau."
+},
+{
+"id": "o135",
+"c": [
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous annoncez des la premiere minute que le projet n est pas termine. Pourquoi ce choix ?",
+"a": [
+"Parce que le jury le decouvrirait de toute facon, et qu une revelation en fin de presentation ressemblerait a une dissimulation.",
+"L annoncer d emblee permet de structurer la presentation autour de ce fait plutot que de le contourner, et de consacrer le temps a ce que cela a appris.",
+"Le perimetre livre reste substantiel : socle deploye, collecte fonctionnelle sur le meme parc, base migree, series temporelles transferees, documentation complete et reprenable.",
+"La plateforme d origine est restee la reference : aucune interruption de service sur dix-sept mois.",
+"Risque du choix, a assumer : cela donne au jury une prise des la premiere minute. Il faut donc que la suite montre que le non-achevement est instruit, pas subi."
+],
+"p": "Ce choix n est bon que si le reste de la presentation le justifie. Si vous annoncez l inachevement sans en tirer d analyse, vous perdez sur les deux tableaux."
+},
+{
+"id": "o136",
+"c": [
+"C21"
+],
+"t": "anglais",
+"n": 3,
+"q": "Your project is not finished. Why not, and what would you do differently?",
+"a": [
+"Structure : state the facts first, then the cause, then what you would change. Do not blame other teams.",
+"Faits : the switchover has not been done yet. Three items are pending, and two of them depend on other teams.",
+"Cause a assumer : I identified the external dependencies as risks, but I only tracked them by asking and following up. No deadline, no escalation, no fallback plan.",
+"Ce que vous changeriez : I would set a response date for every external request, record it, and escalate when there is no answer.",
+"Vocabulaire : switchover, dependency, deadline, to escalate, fallback, stakeholder, scope."
+],
+"p": "C est la question anglaise la plus probable, parce qu elle est la premiere question francaise evidente. Preparez-la mot pour mot."
+},
+{
+"id": "o137",
+"c": [
+"C19",
+"C17"
+],
+"t": "projet",
+"n": 2,
+"q": "Comment avez-vous organise le projet dans le temps, et pourquoi ce decoupage ?",
+"a": [
+"Sept lots. Trois termines : etude et cadrage de l hiver 2024-2025 a fevrier 2026, maquettage du 14 avril au 7 mai 2026, socle de production du 27 juillet au 2 aout.",
+"Deux lots bloques : la migration des donnees qui attend un arbitrage, la collecte passive qui attend des parametres reseau. La bascule n est pas demarree. La documentation est continue.",
+"Approche incrementale en trois temps : maquette, puis deploiement en collecte parallele, puis bascule. Chaque etape valide la suivante et laisse un retour arriere possible.",
+"Ce decoupage n est pas esthetique : avec deux jours par semaine et une production qui ne doit pas bouger, une bascule en une fois n etait pas envisageable.",
+"Cinq jalons definis, quatre atteints et dates, le cinquieme etant la bascule et l extinction."
+],
+"p": "Le jury peut demander pourquoi le cadrage a dure plus d un an. Preparez la reponse sur la disponibilite reelle et sur l attente des serveurs."
+},
+{
+"id": "o138",
+"c": [
+"C19"
+],
+"t": "projet",
+"n": 3,
+"q": "Vous n avez pas mis en place de comite de pilotage. Est-ce une faiblesse ?",
+"a": [
+"Sur une equipe de quatre personnes plus un alternant, un point direct avec le commanditaire est plus efficace qu une reunion hebdomadaire. Sur ce perimetre, non.",
+"Sur un projet a plusieurs equipes, oui. Et c est precisement la que j ai bute : les dependances externes auraient probablement remonte plus tot avec un point regulier reunissant les equipes concernees.",
+"Ce qui a tenu lieu de trace : le depot Git comme journal de bord, la messagerie comme canal de decision, et une base de connaissances alimentee au fil des incidents.",
+"Ce qui a manque : aucun compte rendu formel, aucun point d avancement periodique, aucune echeance opposable aux tiers.",
+"La reponse juste distingue les deux perimetres plutot que de defendre ou de condamner en bloc."
+],
+"p": "Repondre non sans nuance vous expose. Repondre oui sans distinguer les perimetres revient a condamner une organisation qui fonctionnait."
+},
+{
+"id": "o139",
+"c": [
+"C12",
+"C18"
+],
+"t": "projet",
+"n": 2,
+"q": "Pourquoi avoir ecarte le dimensionnement automatique des collecteurs ?",
+"a": [
+"Examine puis mis de cote le 28 juillet, decision soumise au commanditaire et arbitree.",
+"Raison de fond : un collecteur n est pas une charge sans etat que l on ajoute et retire librement. Chaque instance recoit une part du parc et un identifiant stable ; une variation automatique du nombre d instances redistribue la charge de collecte a chaque ajustement.",
+"Une redistribution frequente perturbe la regularite des cycles, qui est precisement la propriete que la supervision doit garantir.",
+"Le besoin exprime n etait pas l elasticite mais la reproductibilite : ajouter un collecteur doit etre simple, pas automatique.",
+"Ce n est pas exclu definitivement : cela figure parmi les evolutions envisageables une fois la plateforme stabilisee et le dimensionnement valide en exploitation."
+],
+"p": "Si vous n avez pas instruit la question a ce niveau, dites que la decision a ete prise pour ne pas ajouter un mecanisme non maitrise avant stabilisation. Ne construisez pas une justification technique apres coup."
+},
+{
+"id": "o140",
+"c": [
+"C3"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous gerez les pare-feux. Comment traitez-vous une demande d ouverture de flux ?",
+"a": [
+"27 demandes traitees sur la periode, sur le perimetre transverse.",
+"Elements exiges avant toute ouverture : source, destination, protocole et port, sens du flux, justification metier, demandeur identifie, et caractere temporaire ou permanent.",
+"Principe applique : ouvrir le flux le plus etroit qui reponde au besoin, pas le plus large qui evite une seconde demande.",
+"Tracabilite : la demande et son arbitrage doivent rester consultables, sinon personne ne peut savoir pourquoi une regle existe ni si elle est encore justifiee.",
+"Lien avec le projet : c est exactement le probleme rencontre sur le defaut de routage vers la base, ou l absence de flux n avait pas ete identifiee avant la mise a disposition."
+],
+"p": "Le jury peut demander comment vous nettoyez les regles obsoletes. C est la question qui distingue une gestion de flux d une accumulation de regles."
+},
+{
+"id": "o141",
+"c": [
+"C19",
+"C2"
+],
+"t": "projet",
+"n": 2,
+"q": "Le projet a ete suspendu pendant deux semaines et demie. Comment gerez-vous ce type d interruption ?",
+"a": [
+"Une autre mission est passee prioritaire. C est une realite d un poste partage entre un site et un perimetre transverse, pas un incident.",
+"Consequence directe sur le planning : ces deux semaines et demie s ajoutent aux autres causes de derive, avec la livraison tardive de la base, les trois jours sur les droits d acces aux volumes, et l invalidation de l hypothese de debit le 19 aout.",
+"Ce qui protege d une reprise couteuse apres interruption : l etat complet decrit dans le depot plutot que dans la memoire de celui qui travaille, et la base de connaissances alimentee au fil de l eau.",
+"Ce qui a manque : aucune trace de l etat d avancement au moment de la suspension, le tableau physique n en conservant aucun historique."
+],
+"p": "Ne presentez pas la suspension comme une injustice. Le jury cherche comment vous reprenez un projet froid, pas pourquoi il a ete interrompu."
+},
+{
+"id": "o142",
+"c": [
+"C16",
+"C12"
+],
+"t": "projet",
+"n": 3,
+"q": "L outil que vous avez migre est supervise par l autre plateforme du groupe. Que se passe-t-il apres la bascule ?",
+"a": [
+"Avant : les machines portant la plateforme sont des serveurs classiques, supervises par l outil dedie aux serveurs et aux services systeme.",
+"Apres : les charges applicatives sont des pods sur un cluster. Les objets a surveiller changent de nature : etat des pods, redemarrages, disponibilite des revendications de volume, sante de la synchronisation declarative.",
+"Question ouverte a assumer si elle n est pas tranchee : la supervision du cluster releve du proprietaire de l infrastructure, celle de l application reste a definir dans le nouveau modele.",
+"Point aggravant deja constate : la plateforme ne detectait pas la defaillance de ses propres collecteurs, alors qu elle en a la donnee. Ce defaut doit etre corrige dans le nouveau contexte, ou il se reproduira sous une autre forme.",
+"La supervision d une supervision est un probleme reel : il faut un observateur externe, sinon la panne se masque elle-meme."
+],
+"p": "Question tres probable d un jury de professionnels. Si le sujet n a pas ete traite dans le projet, dites-le et enoncez ce qu il faudrait mettre en place."
+},
+{
+"id": "o143",
+"c": [
+"C17",
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Votre cahier des charges n a pas ete signe. Quelle valeur a-t-il alors ?",
+"a": [
+"Il a ete construit avec le commanditaire au fil des echanges, pas valide par une signature. C est une faiblesse du dossier, a assumer plutot qu a maquiller.",
+"Ce qui lui donne malgre tout une valeur operationnelle : chaque exigence est rattachee a une origine identifiee, chaque critere de recette est rattache a une exigence, et les points non arbitres portent une mention explicite.",
+"Ce que l absence de signature coute reellement : aucune exigence n est opposable. En cas de desaccord sur le perimetre livre, rien ne tranche.",
+"Ce qui aurait du etre fait : soumettre le document a un point de validation formel, meme leger, plutot que de considerer que l accord continu tenait lieu de validation.",
+"Le document prevoit une section de validation avec les roles et les signatures : elle est restee vide."
+],
+"p": "Un cahier des charges non signe reste un bon document de travail. Ne le survendez pas comme un engagement contractuel."
+},
+{
+"id": "o144",
+"c": [
+"C19",
+"C20"
+],
+"t": "projet",
+"n": 1,
+"q": "Quel outil de suivi utilisiez-vous au quotidien, et qu est-ce que vous en changeriez ?",
+"a": [
+"Un tableau physique a trois colonnes, melant les taches du projet et les taches courantes du poste. Adapte a un travail fragmente sur deux jours par semaine.",
+"Avantage reel : visibilite immediate, aucun cout de saisie, et le melange projet plus courant reflete la charge reelle plutot qu une vue projet isolee.",
+"Defaut paye plus tard : aucun historique conserve. Au moment de reconstituer le deroulement pour le rapport, il n en restait rien, et la messagerie est devenue la seule source.",
+"Ce que je changerais : un support conservant l historique des deplacements de taches, meme minimal, pour disposer d une trace d avancement independante des echanges.",
+"Cela rejoint la faiblesse plus large : le projet est trace, mais la trace n a pas ete concue pour etre exploitee."
+],
+"p": "Le jury peut demander pourquoi ne pas avoir utilise un outil de gestion de projet. Une reponse honnete sur le cout de saisie vaut mieux qu une justification methodologique inventee."
+},
+{
+"id": "o145",
+"c": [
+"C12",
+"C14"
+],
+"t": "general",
+"n": 3,
+"q": "Deux noeuds seulement dans votre maquette. Est-ce un vrai cluster multi-noeuds ?",
+"a": [
+"C est le minimum pour observer la repartition des composants entre machines et les echanges reseau que cela implique. C est donc representatif du mecanisme.",
+"Ce que cela ne reproduit pas : la tolerance de panne reelle. Avec un plan de controle unique, la perte du noeud de controle arrete le pilotage. Un vrai plan de controle en haute disponibilite exige au moins trois membres pour le quorum d etcd.",
+"La maquette visait a valider les manifests, la synchronisation declarative, les montages et la resolution de noms, pas la resilience.",
+"Ce qui rendait la maquette representative n est pas le nombre de noeuds mais la position des dependances : base, stockage et chaine de deploiement volontairement a l exterieur du cluster, comme en production.",
+"La production, elle, tolere la panne d un noeud de travail."
+],
+"p": "Le jury peut pousser sur le quorum. Ne pretendez pas que votre maquette a deux noeuds demontre la haute disponibilite."
+},
+{
+"id": "o146",
+"c": [
+"C19",
+"C2"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous n aviez que deux jours par semaine sur ce projet. En quoi cela a-t-il change votre facon de travailler ?",
+"a": [
+"Le poste est partage : trois jours sur un site en support de proximite et missions locales, deux jours au groupement sur les plateformes transverses dont releve ce projet.",
+"Consequence directe : une bascule en une fois etait exclue. D ou le decoupage incremental en maquette, collecte parallele, puis bascule.",
+"Consequence sur l outillage : un micro-planning permanent adapte a un travail fragmente, plutot qu un planning detaille rapidement perime.",
+"Consequence sur la documentation : l etat complet devait vivre dans le depot et non dans ma memoire, parce que cinq jours peuvent separer deux sessions de travail.",
+"Effet non anticipe : la fragmentation a rendu couteuse chaque reprise de contexte, ce qui plaide encore pour une trace ecrite d avancement, qui a manque."
+],
+"p": "Ne presentez pas la contrainte comme une excuse au retard. Le retard tient aux dependances externes, pas au temps disponible."
+},
+{
+"id": "m147",
+"c": [
+"C12",
+"C18",
+"C5"
+],
+"t": "projet",
+"n": 3,
+"q": "L editeur documente un mode de secours pour le cache d ecriture. Pourquoi ne l avez-vous pas mis en oeuvre ?",
+"a": [
+"Le mode existe : une instance de secours prete a prendre le relais de l instance active.",
+"Son cout n est pas nul : il impose un equilibreur devant le cache et un journal partage entre les deux instances, donc deux composants supplementaires et un nouveau point de coordination.",
+"Ce qu il couvre : les 20 a 25 minutes d indisponibilite au remplacement du pod. Personne n a declare cette duree inacceptable, parce que l exigence de service correspondante n est pas arbitree.",
+"Position defendable : sans valeur cible, on ne peut pas dimensionner une parade. Dimensionner quand meme reviendrait a fabriquer l exigence.",
+"A dire clairement : c est la premiere chose a reprendre le jour ou cette exigence est arbitree, et la conception actuelle ne l empeche pas."
+],
+"p": "Ne dites pas que ce n etait pas possible. Le jury sait que l editeur le documente. La reponse est un arbitrage cout contre exigence non formalisee, pas une limite technique."
+},
+{
+"id": "m148",
+"c": [
+"C18",
+"C12"
+],
+"t": "projet",
+"n": 2,
+"q": "Vous parlez de composants et jamais de microservices. Est-ce une nuance de vocabulaire ?",
+"a": [
+"Non, c est une description exacte. Il s agit d une seule application dont les processus sont repartis dans des conteneurs distincts.",
+"Il n existe aucune interface applicative entre ces processus : ils ne s appellent pas, ils partagent des ressources.",
+"Quatre composants partagent la meme image, le meme schema de base et la meme cle applicative. Une montee de version les concerne tous en meme temps.",
+"Employer le terme microservices promettrait une independance de deploiement et de donnees qui n existe pas ici, et le jury aurait raison de demander ou est la frontiere de service.",
+"Consequence pratique : le decoupage apporte de l elasticite sur un composant, pas de l autonomie."
+],
+"p": "C est une question de precision, et elle vous avantage si vous la tenez. Elle se retourne contre vous si vous avez ecrit microservices quelque part dans le rapport : verifiez."
+},
+{
+"id": "m149",
+"c": [
+"C12",
+"C18"
+],
+"t": "projet",
+"n": 3,
+"q": "Qu est-ce que le decoupage en conteneurs vous apporte concretement, et ou s arrete-t-il ?",
+"a": [
+"Le nombre de collecteurs se regle par un champ, sans toucher aux autres composants.",
+"Le cache d ecriture se remplace, avec son delai d arret de 600 secondes, sans toucher a l interface web.",
+"L etat vit hors du cluster, base et stockage : les composants sont donc remplacables sans consequence sur les donnees.",
+"Les services de reception peuvent etre versionnes dans le depot avant d etre promus en synchronisation.",
+"Ou cela s arrete : une montee de version de l image est une operation d ensemble, puisque quatre composants partagent la meme image. Il n y a pas de deploiement independant par composant."
+],
+"p": "Repondre uniquement par les benefices est le piege. La limite enoncee spontanement est ce qui distingue la description d une architecture de sa publicite."
+},
+{
+"id": "m150",
+"c": [
+"C12",
+"C16"
+],
+"t": "projet",
+"n": 2,
+"q": "Que devient la collecte pendant que le cache d ecriture redemarre ?",
+"a": [
+"Les collecteurs continuent d interroger les equipements : l interrogation ne depend pas du cache.",
+"Les ecritures echouent tant que le demon n est pas revenu. Il n y a pas de perte definitive tant que le delai reste court, mais il y a un trou dans les series pour la periode concernee.",
+"C est le cout accepte de l instance unique, et c est exactement le symptome qu un graphe presente sur 20 a 25 minutes apres un remplacement de pod.",
+"A ne pas confondre avec une panne : c est un comportement attendu et documente, y compris dans la periode d observation apres bascule."
+],
+"p": "Ne dites pas que rien n est perdu. Il y a un trou dans les mesures, et le jury le verra sur le graphe. Dites ce qui est perdu et pourquoi c est accepte."
+},
+{
+"id": "m151",
+"c": [
+"C3",
+"C12"
+],
+"t": "projet",
+"n": 3,
+"q": "Vos pods portent des capacites reseau elevees. Lesquelles, et sont-elles toutes necessaires ?",
+"a": [
+"Deux capacites sont accordees. L une est necessaire : les tests de joignabilite emettent des paquets ICMP bruts, ce qui exige la capacite de manipuler des sockets bruts.",
+"L autre est probablement superflue : elle autorise la configuration reseau du conteneur, ce dont l application n a pas d usage identifie.",
+"Origine honnete : heritage de la configuration d origine, reconduite sans etre reexaminee au moment du portage.",
+"Action identifiee : retirer la capacite superflue et verifier que les tests de joignabilite fonctionnent toujours. C est un test simple, executable sans risque sur un environnement de repetition.",
+"Principe applique par ailleurs : privilege minimal. Reconduire une permission sans justification est exactement la dette qu une migration doit eviter."
+],
+"p": "Point faible connu. Le reconnaitre avec l action corrective precise vaut mieux qu une justification par la securite de l image. Le jury peut demander ce qu un attaquant ferait de cette capacite."
+},
+{
+"id": "m152",
+"c": [
+"C3",
+"C9"
+],
+"t": "projet",
+"n": 2,
+"q": "Comment un utilisateur accede-t-il a l interface, et qu est-ce qui le protege ?",
+"a": [
+"Acces en HTTPS via la passerelle mutualisee, avec redirection 301 depuis HTTP par une route dediee.",
+"Le TLS est termine sur la passerelle, avec le certificat wildcard interne. Le trafic entre la passerelle et le pod reste interne au cluster.",
+"Session applicative protegee par un cookie de session.",
+"Le mode d authentification exact reste a confirmer avant la soutenance : annuaire d entreprise ou base locale de l application. Ne pas l affirmer sans verification.",
+"Ce qui n existe pas et doit etre dit : aucune restriction reseau au niveau du cluster n encadre l acces au pod web."
+],
+"p": "Si vous ignorez le mode d authentification de votre propre plateforme, le jury le relevera. C est une verification de dix minutes a faire avant jeudi."
+},
+{
+"id": "m153",
+"c": [
+"C3",
+"C19"
+],
+"t": "projet",
+"n": 2,
+"q": "Qui peut modifier la production, concretement ?",
+"a": [
+"Personne par commande directe sur le cluster : je n ai pas ces droits, et c est une decision d architecture, pas une contrainte subie.",
+"Le seul chemin est un commit sur le depot interne, applique par la chaine de deploiement continu.",
+"Consequence : toute modification porte un auteur, une date et un motif, et le depot constitue l historique complet.",
+"A confirmer avant la soutenance : l existence et la configuration exacte d une protection de branche sur le depot. Sans elle, un commit direct sur la branche synchronisee part en production sans revue.",
+"C est le point ou la chaine est la plus faible : la correction automatique des ecarts applique fidelement une erreur comme une correction."
+],
+"p": "Si la protection de branche n existe pas, dites-le. Affirmer une revue obligatoire qui n existe pas est bien pire que reconnaitre son absence."
+},
+{
+"id": "m154",
+"c": [
+"C3",
+"C12"
+],
+"t": "projet",
+"n": 3,
+"q": "Les composants internes du namespace sont-ils atteignables, et par qui ?",
+"a": [
+"Ils ne sont pas exposes hors du cluster : seuls l interface web, via la passerelle, et les services de reception disposent d un point d entree externe.",
+"A l interieur du cluster, en revanche, aucune politique reseau n est declaree dans le namespace. Tout pod du cluster peut donc atteindre le cache d ecriture et la file de taches.",
+"La file de taches n est pas protegee par mot de passe.",
+"Deux actions courtes et identifiees : declarer une politique reseau restreignant les flux entrants aux pods du namespace, et activer une authentification sur la file en referencant sa valeur par un secret.",
+"Ne pas presenter ces mesures comme faites : elles sont identifiees, pas deployees."
+],
+"p": "C est la question de securite la plus directe du dossier. Revendiquer une politique reseau non deployee serait une faute, et elle se verifie dans le depot."
+},
+{
+"id": "m155",
+"c": [
+"C9"
+],
+"t": "general",
+"n": 2,
+"q": "Qu est-ce que le spanning tree, et pourquoi avoir remplace deux chassis par une pile ?",
+"a": [
+"Le spanning tree bloque logiquement certains liens pour eliminer les boucles de commutation, qui provoqueraient une multiplication infinie des trames de diffusion.",
+"Son cout : des liens physiques inutilises, et un delai de convergence lors d un changement de topologie.",
+"Une pile presente plusieurs chassis physiques comme un seul equipement logique, avec un plan de controle unique.",
+"Consequence directe : il n y a plus de spanning tree a faire converger entre les deux chassis, et l agregation de liens peut repartir sur les deux chassis, donc des liens actifs au lieu de liens bloques.",
+"Contrepartie : le plan de controle unique devient un point de defaillance logique, et une mise a jour de la pile concerne les deux chassis."
+],
+"p": "Le jury peut demander la contrepartie. Une pile n est pas gratuite : elle echange de la redondance de plan de controle contre de la simplicite et du debit."
+},
+{
+"id": "m156",
+"c": [
+"C9"
+],
+"t": "general",
+"n": 2,
+"q": "Comment se resout un nom interne depuis un poste du domaine, et que valent un enregistrement A, CNAME et PTR ?",
+"a": [
+"Le poste interroge le resolveur declare par sa configuration reseau. Celui-ci repond depuis son cache, ou resout la zone dont il est autoritaire, ou interroge en amont.",
+"A associe un nom a une adresse IPv4. CNAME est un alias qui renvoie vers un autre nom, jamais vers une adresse. PTR realise la resolution inverse, d une adresse vers un nom, dans une zone dediee.",
+"Le suffixe de recherche permet de resoudre un nom court en le completant automatiquement. C est le meme mecanisme, avec plusieurs suffixes, qui a provoque la multiplication des requetes a l interieur du cluster.",
+"Le TTL determine la duree de conservation en cache, ce qui explique pourquoi on l abaisse avant une bascule.",
+"Piege courant : un CNAME ne peut pas coexister avec d autres enregistrements pour le meme nom."
+],
+"p": "Le jury peut relier la question a votre incident de resolution. Faire le lien vous-meme montre que vous avez compris le mecanisme et pas seulement applique un correctif."
+},
+{
+"id": "m157",
+"c": [
+"C19",
+"C12"
+],
+"t": "projet",
+"n": 2,
+"q": "Combien de noeuds compte le cluster de production ?",
+"a": [
+"Si la valeur n est pas connue avec certitude, ne pas l inventer. Structure de reponse en trois temps : ce que je sais, ce que je verifierais, ou.",
+"Ce que je sais : le cluster est multi-noeuds, reparti sur plusieurs serveurs physiques acquis pour l ensemble des applications internes, et il tolere la perte d un noeud de travail.",
+"Ou je le verifierais : dans la vue des ressources de l outil de deploiement, ou aupres du proprietaire du cluster, a qui cette information appartient.",
+"Element de comparaison utile : ma maquette ne comptait qu un seul noeud de travail, ce qui lui interdisait de tester la repartition et la replanification. Le dire spontanement montre que la limite est connue.",
+"Cette structure de reponse vaut pour toute question dont la reponse releve d un tiers."
+],
+"p": "Un chiffre invente sur une question de ce niveau detruit la credibilite de tout le reste. Le jury sait que cette information peut ne pas etre de votre ressort."
+},
+{
+"id": "m158",
+"c": [
+"C12",
+"C14"
+],
+"t": "projet",
+"n": 3,
+"q": "Un noeud de travail tombe. Que se passe-t-il, composant par composant ?",
+"a": [
+"Le plan de controle detecte le noeud non pret, puis les pods sont replanifies ailleurs, sur un delai de plusieurs minutes et non instantane.",
+"Collecteurs : le StatefulSet recree les instances manquantes, le demarrage etant parallele, et la file de taches redistribue les groupes d equipements. La collecte continue a capacite reduite.",
+"Cache d ecriture : 20 a 25 minutes sans ecriture possible. Les collecteurs continuent d interroger pendant ce temps.",
+"Interface web : une seule replique, donc indisponible le temps de la recreation.",
+"Limite de validation a assumer : ce scenario n a pas ete teste en laboratoire, la maquette ne comptant qu un seul noeud de travail. Il repose sur le comportement attendu de l orchestrateur, pas sur une observation."
+],
+"p": "Le point qui vous expose est la validation. Dire que ce n a pas ete teste et pourquoi vaut mieux que de decrire un comportement observe qui ne l a pas ete."
+}
+]
+</script>
+
+<script>
+const COMPS=JSON.parse(document.getElementById("COMPS").textContent);
+const QS=JSON.parse(document.getElementById("QUESTIONS").textContent);
+const ECARTS=JSON.parse(document.getElementById("ECARTS").textContent);
+const KEY="jury_asr_v3";
+let ST={rec:{},sess:[]};
+let store=null,storeLabel="";
+
+async function loadStore(){
+ if(window.storage&&typeof window.storage.get==="function"){
+  store="w";storeLabel="Stockage applicatif. La progression suit votre compte.";
+  try{const r=await window.storage.get(KEY);if(r&&r.value)ST=JSON.parse(r.value);}catch(e){}
+ }else{
+  store="l";storeLabel="Stockage local du navigateur. La progression reste sur cet appareil et ce navigateur.";
+  try{const v=localStorage.getItem(KEY);if(v)ST=JSON.parse(v);}catch(e){}
+ }
+ if(!ST.rec)ST.rec={};if(!ST.sess)ST.sess=[];
+}
+async function save(){
+ const v=JSON.stringify(ST);
+ try{if(store==="w")await window.storage.set(KEY,v);else localStorage.setItem(KEY,v);}catch(e){}
+}
+
+let F={c:new Set(),t:new Set(),n:new Set()},cur=null;
+
+function go(id){
+ document.querySelectorAll("section").forEach(s=>s.classList.remove("on"));
+ document.getElementById(id).classList.add("on");
+ document.querySelectorAll("nav button").forEach(b=>b.classList.remove("on"));
+ document.getElementById("nav-"+id).classList.add("on");
+ if(id==="d")renderDash();
+ if(id==="b")renderBank();
+ if(id==="p")renderPrefs();
+ window.scrollTo(0,0);
+}
+
+function codes(){const s=new Set();QS.forEach(q=>q.c.forEach(c=>s.add(c)));return [...s].sort((a,b)=>{
+ if(a==="GEN")return 1;if(b==="GEN")return -1;return parseInt(a.slice(1))-parseInt(b.slice(1));});}
+
+function buildFilters(){
+ const fc=document.getElementById("fcomp");
+ fc.innerHTML='<span class="pill" style="width:100%">Competence</span><button onclick="tog(\'c\',null)">Toutes</button>';
+ codes().forEach(c=>{const b=document.createElement("button");b.textContent=c;b.onclick=()=>tog("c",c);b.dataset.k="c"+c;fc.appendChild(b);});
+ const ft=document.getElementById("ftype");
+ ft.innerHTML='<span class="pill" style="width:100%">Nature</span><button onclick="tog(\'t\',null)">Toutes</button>';
+ [["projet","Projet"],["general","Systeme et reseau"],["anglais","Anglais"]].forEach(p=>{
+  const b=document.createElement("button");b.textContent=p[1];b.onclick=()=>tog("t",p[0]);b.dataset.k="t"+p[0];ft.appendChild(b);});
+ const fn=document.getElementById("fniv");
+ fn.innerHTML='<span class="pill" style="width:100%">Difficulte</span><button onclick="tog(\'n\',null)">Toutes</button>';
+ [[1,"Restitution"],[2,"Argumentation"],[3,"Defense"]].forEach(p=>{
+  const b=document.createElement("button");b.textContent=p[1];b.onclick=()=>tog("n",p[0]);b.dataset.k="n"+p[0];fn.appendChild(b);});
+ const sel=document.getElementById("bcomp");
+ sel.innerHTML='<option value="">Toutes</option>'+codes().map(c=>'<option value="'+c+'">'+c+'</option>').join("");
+ syncF();
+}
+function tog(k,v){if(v===null)F[k].clear();else{F[k].has(v)?F[k].delete(v):F[k].add(v);}syncF();}
+function syncF(){
+ document.querySelectorAll("[data-k]").forEach(b=>{
+  const k=b.dataset.k[0],v=b.dataset.k.slice(1);
+  b.classList.toggle("on",F[k].has(k==="n"?parseInt(v):v));});
+ document.getElementById("poolinfo").textContent=pool().length+" questions";
+}
+function pool(){
+ return QS.filter(q=>{
+  if(F.c.size&&!q.c.some(c=>F.c.has(c)))return false;
+  if(F.t.size&&!F.t.has(q.t))return false;
+  if(F.n.size&&!F.n.has(q.n))return false;
+  return true;});
+}
+function mastery(id){
+ const r=ST.rec[id];if(!r||!r.h.length)return null;
+ const h=r.h.slice(-3),w=[1,2,4].slice(-h.length);
+ let s=0,t=0;h.forEach((x,i)=>{s+=x.s*w[i];t+=w[i];});
+ return s/t;
+}
+function weight(q){
+ const m=mastery(q.id),r=ST.rec[q.id];
+ let w=m===null?6:1+(3-m)*2.2;
+ if(r&&r.last){const d=(Date.now()-r.last)/86400000;w*=1+Math.min(d/7,2.5);}
+ return w;
+}
+function pick(n,prio){
+ const p=pool().slice();if(!p.length)return [];
+ if(!prio){for(let i=p.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[p[i],p[j]]=[p[j],p[i]];}return p.slice(0,n);}
+ const out=[],src=p.slice();
+ while(out.length<n&&src.length){
+  const ws=src.map(weight),tot=ws.reduce((a,b)=>a+b,0);
+  let r=Math.random()*tot,i=0;
+  while(r>ws[i]){r-=ws[i];i++;}
+  out.push(src.splice(i,1)[0]);
+ }
+ return out;
+}
+function start(){
+ const n=parseInt(document.getElementById("len").value);
+ const qs=pick(n,document.getElementById("prio").checked);
+ if(!qs.length){alert("Aucune question ne correspond aux filtres.");return;}
+ cur={qs:qs,i:0,scores:[],start:Date.now()};
+ document.getElementById("setup").style.display="none";
+ renderQ();
+}
+function renderQ(){
+ const q=cur.qs[cur.i],m=mastery(q.id),r=ST.rec[q.id];
+ const nlab=["","Restitution","Argumentation","Defense"][q.n];
+ let h='<div class="card"><div class="meta">';
+ h+='<span class="tag">'+(cur.i+1)+' / '+cur.qs.length+'</span>';
+ q.c.forEach(c=>h+='<span class="tag c">'+c+'</span>');
+ h+='<span class="tag n'+q.n+'">'+nlab+'</span>';
+ if(q.t==="anglais")h+='<span class="tag en">Anglais</span>';
+ if(q.t==="general")h+='<span class="tag">Hors perimetre</span>';
+ h+='<span class="tag">'+(r?(r.h.length+" vues · "+(m!==null?m.toFixed(1):"—")+"/3"):"nouvelle")+'</span>';
+ h+='</div><div class="q">'+esc(q.q)+'</div>';
+ h+='<div class="sub" style="margin-top:9px">Repondez a voix haute avant d afficher les attendus.</div>';
+ h+='<textarea id="notes" placeholder="Notes, facultatif"></textarea>';
+ h+='<div class="row" style="margin-top:11px"><button class="on" onclick="reveal()" id="rv" style="flex:1">Afficher les attendus</button></div>';
+ h+='<div class="exp hid" id="exp"><h4>Elements attendus</h4><ul>';
+ q.a.forEach(x=>h+="<li>"+esc(x)+"</li>");
+ h+='</ul><h4>Point d attaque du jury</h4><div class="trap">'+esc(q.p)+'</div>';
+ h+='<div style="margin-top:15px"><span class="pill">Auto-evaluation</span><div class="row" style="margin-top:7px">';
+ h+='<button class="r" style="flex:1" onclick="score(0)">0</button>';
+ h+='<button class="o" style="flex:1" onclick="score(1)">1</button>';
+ h+='<button class="v" style="flex:1" onclick="score(2)">2</button>';
+ h+='<button class="g" style="flex:1" onclick="score(3)">3</button></div>';
+ h+='<div class="note" style="margin-top:7px">0 fausse · 1 partielle · 2 incomplete · 3 argumentee</div></div></div></div>';
+ document.getElementById("run").innerHTML=h;
+ window.scrollTo(0,0);
+}
+function reveal(){document.getElementById("exp").classList.remove("hid");document.getElementById("rv").style.display="none";}
+async function score(s){
+ const q=cur.qs[cur.i];
+ if(!ST.rec[q.id])ST.rec[q.id]={h:[],last:0};
+ const nt=document.getElementById("notes").value.trim();
+ ST.rec[q.id].h.push({s:s,d:Date.now(),n:nt||undefined});
+ ST.rec[q.id].last=Date.now();
+ cur.scores.push(s);cur.i++;
+ if(cur.i<cur.qs.length){await save();renderQ();}
+ else{
+  ST.sess.push({d:Date.now(),n:cur.scores.length,avg:cur.scores.reduce((a,b)=>a+b,0)/cur.scores.length,rep:[0,1,2,3].map(v=>cur.scores.filter(x=>x===v).length)});
+  await save();endSession();
+ }
+}
+function endSession(){
+ const avg=cur.scores.reduce((a,b)=>a+b,0)/cur.scores.length;
+ const mins=Math.round((Date.now()-cur.start)/60000);
+ let h='<div class="card"><div class="q">Session terminee</div><div class="grid" style="margin-top:13px">';
+ h+=kpi(avg.toFixed(2)+" / 3","Moyenne",col(avg));
+ h+=kpi(cur.scores.length,"Questions");
+ h+=kpi(mins+" min","Duree");
+ h+=kpi(cur.scores.filter(s=>s<=1).length,"A retravailler","var(--bad)");
+ h+='</div>';
+ const weak=cur.qs.filter((q,i)=>cur.scores[i]<=1);
+ if(weak.length){h+='<h4 style="margin:16px 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim)">Notees 0 ou 1</h4><ul>';
+  weak.forEach(q=>h+="<li>"+q.c.join(", ")+" — "+esc(q.q)+"</li>");h+="</ul>";}
+ h+='<div class="row" style="margin-top:15px"><button class="on" onclick="location.reload()" style="flex:1">Nouvelle session</button><button onclick="go(\'d\')" style="flex:1">Suivi</button></div></div>';
+ document.getElementById("run").innerHTML=h;window.scrollTo(0,0);
+}
+function col(v){return v>=2.3?"var(--ok)":v>=1.5?"var(--warn)":"var(--bad)";}
+function kpi(b,s,c){return '<div class="kpi"><b'+(c?' style="color:'+c+'"':'')+'>'+b+'</b><span>'+s+'</span></div>';}
+
+function renderDash(){
+ const ids=Object.keys(ST.rec);let tot=0,cnt=0;
+ ids.forEach(i=>{const m=mastery(i);if(m!==null){tot+=m;cnt++;}});
+ const gl=cnt?tot/cnt:0;
+ const nev=QS.filter(q=>!ST.rec[q.id]).length;
+ const w=QS.filter(q=>{const m=mastery(q.id);return m!==null&&m<1.5;}).length;
+ document.getElementById("kpis").innerHTML=
+  kpi(cnt?gl.toFixed(2)+" / 3":"—","Maitrise globale",cnt?col(gl):null)+
+  kpi(cnt+" / "+QS.length,"Travaillees")+
+  kpi(nev,"Jamais vues",nev?"var(--warn)":"var(--ok)")+
+  kpi(w,"Sous 1,5",w?"var(--bad)":"var(--ok)")+
+  kpi(ST.sess.length,"Sessions");
+ const s=ST.sess.slice(-40);
+ document.getElementById("spark").innerHTML=s.length?s.map(x=>'<i style="height:'+Math.max(2,(x.avg/3)*100)+'%;background:'+col(x.avg)+'"></i>').join(""):'<span class="note">Aucune session.</span>';
+ document.getElementById("sparklab").textContent=s.length?("Du "+new Date(s[0].d).toLocaleDateString("fr-FR")+" au "+new Date(s[s.length-1].d).toLocaleDateString("fr-FR")):"";
+ const tb=document.getElementById("tcomp");tb.innerHTML="";
+ codes().forEach(c=>{
+  const qs=QS.filter(q=>q.c.includes(c));
+  const ms=qs.map(q=>mastery(q.id)).filter(x=>x!==null);
+  const av=ms.length?ms.reduce((a,b)=>a+b,0)/ms.length:null;
+  let last=0;qs.forEach(q=>{const r=ST.rec[q.id];if(r&&r.last>last)last=r.last;});
+  const tr=document.createElement("tr");
+  tr.innerHTML='<td><b>'+c+'</b></td><td><span class="tag">'+(COMPS[c]?COMPS[c].s:"")+'</span></td>'+
+   '<td class="mono">'+ms.length+"/"+qs.length+'</td>'+
+   '<td><div class="row" style="gap:6px;flex-wrap:nowrap"><div class="bar" style="flex:1"><i style="width:'+(av!==null?(av/3)*100:0)+'%;background:'+(av!==null?col(av):"transparent")+'"></i></div><span class="mono">'+(av!==null?av.toFixed(1):"—")+'</span></div></td>'+
+   '<td class="mono">'+(last?new Date(last).toLocaleDateString("fr-FR"):"—")+'</td>';
+  tb.appendChild(tr);});
+ const tw=document.getElementById("tweak");tw.innerHTML="";
+ QS.map(q=>({q:q,m:mastery(q.id)})).filter(x=>x.m!==null).sort((a,b)=>a.m-b.m).slice(0,15).forEach(x=>{
+  const tr=document.createElement("tr");
+  tr.innerHTML='<td class="mono">'+x.q.c.join(" ")+'</td><td>'+esc(x.q.q)+'</td><td class="mono" style="color:'+col(x.m)+'">'+x.m.toFixed(1)+'</td>';
+  tw.appendChild(tr);});
+ if(!tw.children.length)tw.innerHTML='<tr><td colspan="3" class="note">Aucune question notee.</td></tr>';
+ const th=document.getElementById("thist");th.innerHTML="";
+ ST.sess.slice().reverse().slice(0,25).forEach(x=>{
+  const tr=document.createElement("tr");
+  tr.innerHTML='<td class="mono">'+new Date(x.d).toLocaleDateString("fr-FR")+'</td><td class="mono">'+x.n+'</td><td class="mono" style="color:'+col(x.avg)+'">'+x.avg.toFixed(2)+'</td><td class="mono">'+x.rep.join(" / ")+'</td>';
+  th.appendChild(tr);});
+ if(!th.children.length)th.innerHTML='<tr><td colspan="4" class="note">Aucune session.</td></tr>';
+}
+function renderBank(){
+ const s=document.getElementById("search").value.toLowerCase();
+ const c=document.getElementById("bcomp").value;
+ const list=QS.filter(q=>(!c||q.c.includes(c))&&(!s||q.q.toLowerCase().includes(s)||q.a.join(" ").toLowerCase().includes(s)));
+ document.getElementById("bankinfo").textContent=list.length+" / "+QS.length;
+ document.getElementById("banklist").innerHTML=list.map(q=>{
+  const m=mastery(q.id);
+  return '<div class="card"><div class="meta">'+q.c.map(x=>'<span class="tag c">'+x+'</span>').join("")+
+   '<span class="tag n'+q.n+'">'+["","Restitution","Argumentation","Defense"][q.n]+'</span>'+
+   (q.t==="anglais"?'<span class="tag en">Anglais</span>':"")+
+   '<span class="tag">'+(m!==null?m.toFixed(1)+"/3":"—")+'</span></div>'+
+   '<div style="font-size:16px;margin-bottom:9px">'+esc(q.q)+'</div>'+
+   '<details><summary class="note">Attendus et point d attaque</summary><div class="exp" style="border-top:none;padding-top:9px"><ul>'+
+   q.a.map(x=>"<li>"+esc(x)+"</li>").join("")+'</ul><div class="trap">'+esc(q.p)+'</div></div></details></div>';
+ }).join("")||'<div class="card note">Aucun resultat.</div>';
+}
+function renderPrefs(){
+ document.getElementById("storinfo").textContent=storeLabel;
+ document.getElementById("ecarts").innerHTML=ECARTS.map(e=>
+  '<div class="'+(e.n==="critique"?"critbox":"warnbox")+'"><b>'+e.n.toUpperCase()+'</b><br>'+esc(e.t)+'</div>').join("");
+}
+function exportData(){
+ const b=new Blob([JSON.stringify(ST,null,1)],{type:"application/json"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(b);
+ a.download="progression_jury_"+new Date().toISOString().slice(0,10)+".json";a.click();
+}
+function importData(e){
+ const f=e.target.files[0];if(!f)return;
+ const r=new FileReader();
+ r.onload=async()=>{try{const d=JSON.parse(r.result);if(d.rec){ST=d;if(!ST.sess)ST.sess=[];await save();alert("Progression importee.");renderDash();}else alert("Fichier non reconnu.");}catch(x){alert("Fichier illisible.");}};
+ r.readAsText(f);
+}
+async function wipe(){
+ if(!confirm("Effacer toute la progression ?"))return;
+ ST={rec:{},sess:[]};await save();renderDash();
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
+(async()=>{await loadStore();buildFilters();renderPrefs();})();
+</script>
+</body>
+</html>
